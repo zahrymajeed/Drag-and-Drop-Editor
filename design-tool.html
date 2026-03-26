@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FrameForge — Visual Design Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e10;
+    --surface: #16161a;
+    --surface2: #1e1e24;
+    --border: #2a2a35;
+    --accent: #f0c060;
+    --accent2: #7b6ef6;
+    --accent3: #4ecdc4;
+    --text: #e8e8f0;
+    --text-muted: #7a7a90;
+    --danger: #ff6b6b;
+    --success: #6bcb77;
+    --canvas-bg: #f5f4f0;
+    --sidebar-w: 260px;
+    --props-w: 280px;
+    --toolbar-h: 52px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── TOOLBAR ── */
+  #toolbar {
+    height: var(--toolbar-h);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+
+  .brand {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 18px;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+    margin-right: 8px;
+  }
+
+  .toolbar-sep { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+
+  .tb-btn {
+    background: none; border: 1px solid transparent;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: all .15s;
+  }
+  .tb-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--border); }
+  .tb-btn.active { background: var(--accent2); color: #fff; border-color: transparent; }
+  .tb-btn .icon { font-size: 14px; }
+
+  #canvas-size-select {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Mono', monospace; font-size: 11px;
+    padding: 4px 8px; border-radius: 6px; cursor: pointer; outline: none;
+  }
+
+  .zoom-controls { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+  .zoom-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text-muted); font-size: 14px; width: 26px; height: 26px;
+    border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .zoom-btn:hover { color: var(--text); border-color: var(--accent); }
+  #zoom-label {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: var(--text-muted); min-width: 40px; text-align: center;
+  }
+
+  /* ── MAIN AREA ── */
+  #main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: var(--sidebar-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .sidebar-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-tab {
+    flex: 1; padding: 10px 6px;
+    font-size: 11px; font-weight: 500; letter-spacing: .5px; text-transform: uppercase;
+    text-align: center; cursor: pointer; color: var(--text-muted);
+    border-bottom: 2px solid transparent; transition: all .15s;
+  }
+  .sidebar-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .sidebar-panel { display: none; flex: 1; overflow-y: auto; padding: 12px; }
+  .sidebar-panel.active { display: block; }
+
+  .section-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 8px; margin-top: 12px;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  /* Component cards */
+  .component-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .comp-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 8px;
+    cursor: grab; text-align: center;
+    transition: all .15s; user-select: none;
+  }
+  .comp-card:hover { border-color: var(--accent2); background: #22222e; transform: translateY(-1px); }
+  .comp-card:active { cursor: grabbing; }
+  .comp-card .ci { font-size: 20px; margin-bottom: 4px; display: block; }
+  .comp-card .cl { font-size: 10px; color: var(--text-muted); font-weight: 500; }
+
+  /* Layer tree */
+  .layer-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; border-radius: 6px; cursor: pointer;
+    font-size: 12px; transition: background .1s;
+  }
+  .layer-item:hover { background: var(--surface2); }
+  .layer-item.selected { background: rgba(123,110,246,.2); color: var(--accent2); }
+  .layer-icon { font-size: 12px; color: var(--text-muted); }
+  .layer-name { flex: 1; }
+  .layer-vis { font-size: 11px; color: var(--text-muted); cursor: pointer; opacity: .5; }
+  .layer-vis:hover { opacity: 1; }
+
+  /* ── CANVAS WRAPPER ── */
+  #canvas-wrapper {
+    flex: 1;
+    overflow: auto;
+    background: #1a1a20;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,.04) 1px, transparent 0);
+    background-size: 24px 24px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px;
+  }
+
+  #canvas-scale-wrapper {
+    transform-origin: top center;
+    transition: transform .2s;
+  }
+
+  #canvas {
+    background: var(--canvas-bg);
+    position: relative;
+    box-shadow: 0 20px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.05);
+    border-radius: 2px;
+    overflow: hidden;
+    transition: width .3s, height .3s;
+  }
+
+  #canvas.drag-over::after {
+    content: ''; position: absolute; inset: 0;
+    border: 2px dashed var(--accent2); border-radius: 2px;
+    background: rgba(123,110,246,.05);
+    pointer-events: none;
+  }
+
+  /* Canvas elements */
+  .canvas-el {
+    position: absolute;
+    cursor: move;
+    user-select: none;
+    outline: none;
+  }
+  .canvas-el.selected {
+    outline: 2px solid var(--accent2);
+    outline-offset: 1px;
+  }
+  .canvas-el.selected::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    pointer-events: none;
+  }
+
+  /* Resize handles */
+  .resize-handle {
+    position: absolute;
+    width: 8px; height: 8px;
+    background: var(--accent2);
+    border: 1.5px solid #fff;
+    border-radius: 2px;
+    z-index: 999;
+  }
+  .resize-handle.tl { top: -4px; left: -4px; cursor: nw-resize; }
+  .resize-handle.tr { top: -4px; right: -4px; cursor: ne-resize; }
+  .resize-handle.bl { bottom: -4px; left: -4px; cursor: sw-resize; }
+  .resize-handle.br { bottom: -4px; right: -4px; cursor: se-resize; }
+  .resize-handle.tm { top: -4px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
+  .resize-handle.bm { bottom: -4px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
+  .resize-handle.ml { left: -4px; top: 50%; transform: translateY(-50%); cursor: w-resize; }
+  .resize-handle.mr { right: -4px; top: 50%; transform: translateY(-50%); cursor: e-resize; }
+
+  /* Element types default styles */
+  .el-hero { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .el-nav { display: flex; align-items: center; }
+  .el-card { border-radius: 10px; overflow: hidden; }
+  .el-btn { display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .el-text { overflow: hidden; }
+  .el-image { overflow: hidden; display: flex; align-items: center; justify-content: center; }
+  .el-divider { display: flex; align-items: center; }
+  .el-form { display: flex; flex-direction: column; gap: 10px; }
+  .el-footer { display: flex; align-items: center; justify-content: space-between; }
+  .el-testimonial { display: flex; flex-direction: column; gap: 10px; }
+  .el-pricing { display: flex; flex-direction: column; align-items: center; }
+
+  /* ── PROPERTIES PANEL ── */
+  #props-panel {
+    width: var(--props-w);
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  #props-panel h3 {
+    padding: 14px 16px 12px;
+    font-size: 12px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase;
+    color: var(--text-muted); border-bottom: 1px solid var(--border);
+  }
+
+  #props-content { flex: 1; overflow-y: auto; padding: 12px; }
+
+  .prop-group {
+    margin-bottom: 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .prop-group-title {
+    font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--text-muted); padding: 8px 10px 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .prop-row {
+    display: flex; align-items: center;
+    padding: 6px 10px; gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .prop-row:last-child { border-bottom: none; }
+  .prop-label { font-size: 11px; color: var(--text-muted); min-width: 60px; }
+
+  .prop-input {
+    flex: 1; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Mono', monospace; font-size: 11px;
+    padding: 4px 6px; border-radius: 4px; outline: none;
+    transition: border-color .15s;
+  }
+  .prop-input:focus { border-color: var(--accent2); }
+
+  .prop-color {
+    width: 26px; height: 26px; border-radius: 5px;
+    border: 1px solid var(--border); cursor: pointer;
+    overflow: hidden; padding: 0;
+    flex-shrink: 0;
+  }
+  .prop-color input[type=color] {
+    width: 200%; height: 200%;
+    margin: -50%; cursor: pointer; border: none;
+  }
+
+  .prop-range {
+    flex: 1; accent-color: var(--accent2);
+  }
+
+  .prop-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text-muted); font-size: 11px; padding: 4px 8px;
+    border-radius: 4px; cursor: pointer; transition: all .15s;
+  }
+  .prop-btn:hover { border-color: var(--accent2); color: var(--text); }
+  .prop-btn.active { background: var(--accent2); color: #fff; border-color: transparent; }
+
+  .btn-group { display: flex; gap: 2px; }
+
+  .no-selection {
+    text-align: center; padding: 40px 20px;
+    color: var(--text-muted); font-size: 12px; line-height: 1.8;
+  }
+  .no-selection .big { font-size: 32px; margin-bottom: 10px; }
+
+  /* ── CONTEXT MENU ── */
+  #ctx-menu {
+    position: fixed; display: none;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    z-index: 9999; overflow: hidden; min-width: 160px;
+  }
+  .ctx-item {
+    padding: 8px 14px; font-size: 12px; cursor: pointer;
+    display: flex; align-items: center; gap: 8px; color: var(--text);
+    transition: background .1s;
+  }
+  .ctx-item:hover { background: var(--surface2); }
+  .ctx-item.danger { color: var(--danger); }
+  .ctx-sep { height: 1px; background: var(--border); margin: 2px 0; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); font-size: 12px; padding: 8px 18px;
+    border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,.4);
+    z-index: 9999; transition: transform .3s;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- TOOLBAR -->
+<div id="toolbar">
+  <span class="brand">FrameForge</span>
+  <div class="toolbar-sep"></div>
+  <button class="tb-btn" onclick="undo()"><span class="icon">↩</span> Undo</button>
+  <button class="tb-btn" onclick="redo()"><span class="icon">↪</span> Redo</button>
+  <div class="toolbar-sep"></div>
+  <select id="canvas-size-select" onchange="changeCanvasSize(this.value)">
+    <option value="1440,900">Desktop 1440×900</option>
+    <option value="1280,800">Laptop 1280×800</option>
+    <option value="768,1024">Tablet 768×1024</option>
+    <option value="390,844">Mobile 390×844</option>
+    <option value="1200,628">Social OG 1200×628</option>
+  </select>
+  <div class="toolbar-sep"></div>
+  <button class="tb-btn" onclick="clearCanvas()"><span class="icon">🗑</span> Clear</button>
+  <button class="tb-btn" onclick="exportHTML()"><span class="icon">⬇</span> Export HTML</button>
+  <div class="zoom-controls">
+    <button class="zoom-btn" onclick="setZoom(zoom - 0.1)">−</button>
+    <span id="zoom-label">100%</span>
+    <button class="zoom-btn" onclick="setZoom(zoom + 0.1)">+</button>
+    <button class="zoom-btn" onclick="setZoom(1)" title="Reset zoom">⊙</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="sidebar-tabs">
+      <div class="sidebar-tab active" onclick="switchTab('components',this)">Components</div>
+      <div class="sidebar-tab" onclick="switchTab('layers',this)">Layers</div>
+    </div>
+
+    <div id="tab-components" class="sidebar-panel active">
+      <div class="section-label">Layout</div>
+      <div class="component-grid">
+        <div class="comp-card" draggable="true" data-type="nav"><span class="ci">🔗</span><span class="cl">Navbar</span></div>
+        <div class="comp-card" draggable="true" data-type="hero"><span class="ci">🌟</span><span class="cl">Hero</span></div>
+        <div class="comp-card" draggable="true" data-type="section"><span class="ci">📄</span><span class="cl">Section</span></div>
+        <div class="comp-card" draggable="true" data-type="footer"><span class="ci">🏠</span><span class="cl">Footer</span></div>
+      </div>
+
+      <div class="section-label">Content</div>
+      <div class="component-grid">
+        <div class="comp-card" draggable="true" data-type="text"><span class="ci">🆃</span><span class="cl">Text</span></div>
+        <div class="comp-card" draggable="true" data-type="heading"><span class="ci">📰</span><span class="cl">Heading</span></div>
+        <div class="comp-card" draggable="true" data-type="image"><span class="ci">🖼</span><span class="cl">Image</span></div>
+        <div class="comp-card" draggable="true" data-type="divider"><span class="ci">➖</span><span class="cl">Divider</span></div>
+      </div>
+
+      <div class="section-label">UI Elements</div>
+      <div class="component-grid">
+        <div class="comp-card" draggable="true" data-type="btn"><span class="ci">🔲</span><span class="cl">Button</span></div>
+        <div class="comp-card" draggable="true" data-type="card"><span class="ci">🃏</span><span class="cl">Card</span></div>
+        <div class="comp-card" draggable="true" data-type="form"><span class="ci">📝</span><span class="cl">Form</span></div>
+        <div class="comp-card" draggable="true" data-type="badge"><span class="ci">🏷</span><span class="cl">Badge</span></div>
+      </div>
+
+      <div class="section-label">Sections</div>
+      <div class="component-grid">
+        <div class="comp-card" draggable="true" data-type="testimonial"><span class="ci">💬</span><span class="cl">Testimonial</span></div>
+        <div class="comp-card" draggable="true" data-type="pricing"><span class="ci">💲</span><span class="cl">Pricing</span></div>
+        <div class="comp-card" draggable="true" data-type="features"><span class="ci">⚡</span><span class="cl">Features</span></div>
+        <div class="comp-card" draggable="true" data-type="stats"><span class="ci">📊</span><span class="cl">Stats</span></div>
+      </div>
+    </div>
+
+    <div id="tab-layers" class="sidebar-panel">
+      <div id="layer-list"></div>
+    </div>
+  </div>
+
+  <!-- CANVAS WRAPPER -->
+  <div id="canvas-wrapper">
+    <div id="canvas-scale-wrapper">
+      <div id="canvas"></div>
+    </div>
+  </div>
+
+  <!-- PROPERTIES PANEL -->
+  <div id="props-panel">
+    <h3>Properties</h3>
+    <div id="props-content">
+      <div class="no-selection">
+        <div class="big">✦</div>
+        <div>Drag components onto<br>the canvas or click to select</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Context Menu -->
+<div id="ctx-menu">
+  <div class="ctx-item" onclick="ctxDuplicate()">⧉ Duplicate</div>
+  <div class="ctx-item" onclick="ctxBringFront()">⬆ Bring to Front</div>
+  <div class="ctx-item" onclick="ctxSendBack()">⬇ Send to Back</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" onclick="ctxDelete()">✕ Delete</div>
+</div>
+
+<div id="toast">Copied!</div>
+
+<script>
+// ── STATE ──
+let elements = [];
+let selectedId = null;
+let idCounter = 1;
+let zoom = 1;
+let history = [];
+let historyIndex = -1;
+let draggingType = null;
+let dragOffsetX = 0, dragOffsetY = 0;
+let isDraggingEl = false;
+let resizing = null;
+let resizeStartX, resizeStartY, resizeStartW, resizeStartH, resizeStartLeft, resizeStartTop;
+let canvasW = 1440, canvasH = 900;
+
+const canvas = document.getElementById('canvas');
+const propsContent = document.getElementById('props-content');
+const scaleWrapper = document.getElementById('canvas-scale-wrapper');
+
+// ── CANVAS SIZE ──
+function changeCanvasSize(val) {
+  [canvasW, canvasH] = val.split(',').map(Number);
+  canvas.style.width = canvasW + 'px';
+  canvas.style.height = canvasH + 'px';
+  autoZoom();
+}
+
+function autoZoom() {
+  const wrapper = document.getElementById('canvas-wrapper');
+  const availW = wrapper.clientWidth - 80;
+  const availH = wrapper.clientHeight - 80;
+  const z = Math.min(availW / canvasW, availH / canvasH, 1);
+  setZoom(Math.round(z * 10) / 10);
+}
+
+function setZoom(z) {
+  zoom = Math.max(0.1, Math.min(3, z));
+  scaleWrapper.style.transform = `scale(${zoom})`;
+  document.getElementById('zoom-label').textContent = Math.round(zoom * 100) + '%';
+}
+
+// ── COMPONENT TEMPLATES ──
+function getTemplate(type) {
+  const templates = {
+    nav: {
+      w: canvasW, h: 60, x: 0, y: 0,
+      bg: '#1a1a2e', color: '#ffffff',
+      fontSize: 14, borderRadius: 0,
+      html: `<div style="display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:100%;font-family:sans-serif">
+        <span style="font-size:20px;font-weight:700;color:#f0c060">Brand</span>
+        <nav style="display:flex;gap:24px;font-size:14px"><a style="color:#fff;text-decoration:none">Home</a><a style="color:#aaa;text-decoration:none">About</a><a style="color:#aaa;text-decoration:none">Work</a><a style="color:#aaa;text-decoration:none">Contact</a></nav>
+        <button style="background:#7b6ef6;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:13px">Get Started</button></div>`,
+      label: 'Navbar'
+    },
+    hero: {
+      w: canvasW, h: 500, x: 0, y: 60,
+      bg: 'linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)', color: '#ffffff',
+      fontSize: 16, borderRadius: 0,
+      html: `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;font-family:sans-serif;padding:40px">
+        <div style="background:#7b6ef6;color:#fff;font-size:11px;padding:4px 14px;border-radius:20px;margin-bottom:18px;letter-spacing:1px">NEW RELEASE</div>
+        <h1 style="font-size:52px;font-weight:800;line-height:1.1;margin-bottom:16px;color:#fff">Build beautiful<br><span style="color:#f0c060">websites faster</span></h1>
+        <p style="font-size:16px;color:#aaaacc;max-width:480px;line-height:1.7;margin-bottom:32px">Design, prototype and ship production-ready interfaces with our powerful drag-and-drop builder.</p>
+        <div style="display:flex;gap:12px"><button style="background:#7b6ef6;color:#fff;border:none;padding:13px 30px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer">Start Building →</button>
+        <button style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.3);padding:13px 30px;border-radius:8px;font-size:15px;cursor:pointer">Watch Demo</button></div>
+      </div>`,
+      label: 'Hero'
+    },
+    section: {
+      w: canvasW, h: 300, x: 0, y: 560,
+      bg: '#f8f8fc', color: '#1a1a2e',
+      fontSize: 14, borderRadius: 0,
+      html: `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;font-family:sans-serif;padding:40px">
+        <h2 style="font-size:32px;font-weight:700;margin-bottom:12px;color:#1a1a2e">Section Title</h2>
+        <p style="font-size:15px;color:#666;max-width:540px;line-height:1.7">Add your content here. This section is fully customizable — change text, colors, and layout.</p>
+      </div>`,
+      label: 'Section'
+    },
+    footer: {
+      w: canvasW, h: 80, x: 0, y: canvasH - 80,
+      bg: '#0e0e1a', color: '#888',
+      fontSize: 13, borderRadius: 0,
+      html: `<div style="display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:100%;font-family:sans-serif">
+        <span style="color:#f0c060;font-weight:700;font-size:15px">Brand</span>
+        <span style="color:#666;font-size:12px">© 2024 Your Company. All rights reserved.</span>
+        <div style="display:flex;gap:16px"><a style="color:#888;text-decoration:none;font-size:12px">Privacy</a><a style="color:#888;text-decoration:none;font-size:12px">Terms</a><a style="color:#888;text-decoration:none;font-size:12px">Contact</a></div>
+      </div>`,
+      label: 'Footer'
+    },
+    text: {
+      w: 300, h: 80, x: 100, y: 100,
+      bg: 'transparent', color: '#333',
+      fontSize: 14, borderRadius: 0,
+      html: `<p style="font-family:sans-serif;font-size:14px;color:#333;line-height:1.7;padding:8px">Edit this text. Double-click to make it editable. You can write anything here — paragraphs, descriptions, captions.</p>`,
+      label: 'Text'
+    },
+    heading: {
+      w: 400, h: 60, x: 100, y: 100,
+      bg: 'transparent', color: '#111',
+      fontSize: 32, borderRadius: 0,
+      html: `<h2 style="font-family:sans-serif;font-size:32px;font-weight:700;color:#111;padding:8px;line-height:1.2">Your Heading Here</h2>`,
+      label: 'Heading'
+    },
+    image: {
+      w: 300, h: 200, x: 100, y: 100,
+      bg: '#e8e8f0', color: '#999',
+      fontSize: 14, borderRadius: 8,
+      html: `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#999;font-family:sans-serif;font-size:13px;gap:8px;background:linear-gradient(135deg,#e8e8f0,#d0d0e0)">
+        <span style="font-size:32px">🖼</span><span>Image Placeholder</span>
+        <span style="font-size:11px;opacity:.7">300 × 200</span></div>`,
+      label: 'Image'
+    },
+    btn: {
+      w: 140, h: 44, x: 100, y: 100,
+      bg: '#7b6ef6', color: '#ffffff',
+      fontSize: 14, borderRadius: 8,
+      html: `<button style="width:100%;height:100%;background:#7b6ef6;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:sans-serif">Click Me</button>`,
+      label: 'Button'
+    },
+    card: {
+      w: 260, h: 300, x: 100, y: 100,
+      bg: '#ffffff', color: '#333',
+      fontSize: 14, borderRadius: 12,
+      html: `<div style="width:100%;height:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08);font-family:sans-serif">
+        <div style="height:150px;background:linear-gradient(135deg,#7b6ef6,#4ecdc4);display:flex;align-items:center;justify-content:center;font-size:36px">✦</div>
+        <div style="padding:18px">
+          <div style="font-weight:700;font-size:15px;margin-bottom:6px;color:#111">Card Title</div>
+          <div style="font-size:13px;color:#666;line-height:1.6">Card description text goes here. Edit this content.</div>
+          <button style="margin-top:14px;background:#7b6ef6;color:#fff;border:none;padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer">Learn More</button>
+        </div></div>`,
+      label: 'Card'
+    },
+    form: {
+      w: 340, h: 280, x: 100, y: 100,
+      bg: '#ffffff', color: '#333',
+      fontSize: 14, borderRadius: 12,
+      html: `<div style="padding:24px;font-family:sans-serif;height:100%;background:#fff;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.08)">
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:18px;color:#111">Contact Us</h3>
+        <input type="text" placeholder="Your Name" style="width:100%;padding:9px 12px;border:1.5px solid #e0e0ea;border-radius:7px;font-size:13px;margin-bottom:10px;outline:none;font-family:sans-serif">
+        <input type="email" placeholder="Email Address" style="width:100%;padding:9px 12px;border:1.5px solid #e0e0ea;border-radius:7px;font-size:13px;margin-bottom:10px;outline:none;font-family:sans-serif">
+        <textarea placeholder="Your message..." style="width:100%;padding:9px 12px;border:1.5px solid #e0e0ea;border-radius:7px;font-size:13px;height:70px;resize:none;outline:none;font-family:sans-serif"></textarea>
+        <button style="width:100%;background:#7b6ef6;color:#fff;border:none;padding:10px;border-radius:7px;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px">Send Message</button>
+      </div>`,
+      label: 'Form'
+    },
+    badge: {
+      w: 100, h: 30, x: 100, y: 100,
+      bg: '#7b6ef6', color: '#ffffff',
+      fontSize: 11, borderRadius: 20,
+      html: `<div style="width:100%;height:100%;background:#7b6ef6;color:#fff;display:flex;align-items:center;justify-content:center;border-radius:20px;font-size:11px;font-weight:600;font-family:sans-serif;letter-spacing:.5px">NEW</div>`,
+      label: 'Badge'
+    },
+    divider: {
+      w: 600, h: 24, x: 100, y: 200,
+      bg: 'transparent', color: '#e0e0ea',
+      fontSize: 12, borderRadius: 0,
+      html: `<div style="width:100%;display:flex;align-items:center;height:100%;gap:12px;font-family:sans-serif">
+        <div style="flex:1;height:1px;background:#e0e0ea"></div>
+        <span style="font-size:11px;color:#aaa;letter-spacing:1px">✦</span>
+        <div style="flex:1;height:1px;background:#e0e0ea"></div></div>`,
+      label: 'Divider'
+    },
+    testimonial: {
+      w: 340, h: 200, x: 100, y: 100,
+      bg: '#ffffff', color: '#333',
+      fontSize: 14, borderRadius: 12,
+      html: `<div style="padding:24px;font-family:sans-serif;height:100%;background:#fff;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.08)">
+        <div style="color:#f0c060;font-size:18px;margin-bottom:10px">★★★★★</div>
+        <p style="font-size:14px;color:#444;line-height:1.7;margin-bottom:16px;font-style:italic">"This product completely changed how our team works. Highly recommended!"</p>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#7b6ef6,#4ecdc4);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px">A</div>
+          <div><div style="font-weight:600;font-size:13px;color:#111">Alex Johnson</div><div style="font-size:11px;color:#999">Product Designer</div></div>
+        </div></div>`,
+      label: 'Testimonial'
+    },
+    pricing: {
+      w: 260, h: 360, x: 100, y: 100,
+      bg: '#ffffff', color: '#333',
+      fontSize: 14, borderRadius: 16,
+      html: `<div style="padding:28px;font-family:sans-serif;height:100%;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.08);display:flex;flex-direction:column">
+        <div style="font-size:12px;font-weight:600;letter-spacing:1px;color:#7b6ef6;margin-bottom:8px">PRO PLAN</div>
+        <div style="font-size:42px;font-weight:800;color:#111;line-height:1">$49<span style="font-size:16px;font-weight:400;color:#999">/mo</span></div>
+        <div style="color:#888;font-size:13px;margin:8px 0 20px">Everything in Starter, plus:</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;flex:1">
+          ${['Unlimited projects','Priority support','Advanced analytics','Custom domain','Team collaboration'].map(f => `<li style="display:flex;align-items:center;gap:8px;font-size:13px;color:#333"><span style="color:#4ecdc4;font-weight:700">✓</span>${f}</li>`).join('')}
+        </ul>
+        <button style="width:100%;background:#7b6ef6;color:#fff;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:16px">Get Started</button>
+      </div>`,
+      label: 'Pricing'
+    },
+    features: {
+      w: canvasW, h: 300, x: 0, y: 300,
+      bg: '#f8f8fc', color: '#333',
+      fontSize: 14, borderRadius: 0,
+      html: `<div style="padding:40px;font-family:sans-serif;height:100%">
+        <h2 style="text-align:center;font-size:28px;font-weight:700;margin-bottom:8px;color:#111">Features</h2>
+        <p style="text-align:center;color:#888;font-size:14px;margin-bottom:32px">Everything you need to build amazing products</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+          ${[['⚡','Fast Performance','Optimized for speed and efficiency'],['🛡','Secure','Enterprise-grade security built in'],['🎨','Customizable','Tailor everything to your brand']].map(([i,t,d])=>`<div style="text-align:center"><div style="font-size:28px;margin-bottom:10px">${i}</div><div style="font-weight:600;font-size:14px;margin-bottom:6px;color:#111">${t}</div><div style="font-size:13px;color:#888;line-height:1.6">${d}</div></div>`).join('')}
+        </div></div>`,
+      label: 'Features'
+    },
+    stats: {
+      w: canvasW, h: 140, x: 0, y: 200,
+      bg: '#1a1a2e', color: '#fff',
+      fontSize: 14, borderRadius: 0,
+      html: `<div style="display:grid;grid-template-columns:repeat(4,1fr);height:100%;font-family:sans-serif">
+        ${[['10K+','Happy Users'],['99.9%','Uptime'],['50ms','Response Time'],['24/7','Support']].map(([n,l])=>`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid rgba(255,255,255,.08)"><div style="font-size:30px;font-weight:800;color:#f0c060">${n}</div><div style="font-size:12px;color:#aaa;margin-top:4px">${l}</div></div>`).join('')}
+      </div>`,
+      label: 'Stats'
+    }
+  };
+  return templates[type] || templates.text;
+}
+
+// ── ADD ELEMENT ──
+function addElement(type, x, y) {
+  const tpl = getTemplate(type);
+  const el = {
+    id: 'el_' + (idCounter++),
+    type, label: tpl.label,
+    x: x !== undefined ? x : tpl.x,
+    y: y !== undefined ? y : tpl.y,
+    w: tpl.w, h: tpl.h,
+    bg: tpl.bg, color: tpl.color,
+    fontSize: tpl.fontSize, borderRadius: tpl.borderRadius,
+    html: tpl.html,
+    opacity: 1, visible: true, locked: false,
+    zIndex: elements.length + 1
+  };
+  elements.push(el);
+  renderElement(el);
+  selectElement(el.id);
+  updateLayers();
+  saveHistory();
+  return el;
+}
+
+function renderElement(el) {
+  let dom = document.getElementById(el.id);
+  const isNew = !dom;
+
+  if (isNew) {
+    dom = document.createElement('div');
+    dom.id = el.id;
+    dom.className = 'canvas-el';
+    canvas.appendChild(dom);
+  }
+
+  dom.style.cssText = `
+    left:${el.x}px; top:${el.y}px;
+    width:${el.w}px; height:${el.h}px;
+    z-index:${el.zIndex};
+    opacity:${el.opacity};
+    display:${el.visible ? 'block' : 'none'};
+    border-radius:${el.borderRadius}px;
+    pointer-events:${el.locked ? 'none' : 'all'};
+  `;
+  dom.innerHTML = el.html;
+
+  if (isNew) {
+    dom.addEventListener('mousedown', onElMouseDown);
+    dom.addEventListener('contextmenu', onCtxMenu);
+    dom.addEventListener('dblclick', onElDblClick);
+  }
+}
+
+// ── DRAG FROM SIDEBAR ──
+document.querySelectorAll('.comp-card').forEach(card => {
+  card.addEventListener('dragstart', e => {
+    draggingType = card.dataset.type;
+    e.dataTransfer.effectAllowed = 'copy';
+  });
+});
+
+canvas.addEventListener('dragover', e => {
+  e.preventDefault();
+  canvas.classList.add('drag-over');
+});
+canvas.addEventListener('dragleave', () => canvas.classList.remove('drag-over'));
+canvas.addEventListener('drop', e => {
+  e.preventDefault();
+  canvas.classList.remove('drag-over');
+  if (!draggingType) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.round((e.clientX - rect.left) / zoom);
+  const y = Math.round((e.clientY - rect.top) / zoom);
+  addElement(draggingType, x, y);
+  draggingType = null;
+});
+
+// ── ELEMENT DRAG (MOVE) ──
+function onElMouseDown(e) {
+  if (e.button !== 0) return;
+  if (e.target.classList.contains('resize-handle')) return;
+  e.stopPropagation();
+  const el = getElById(e.currentTarget.id);
+  if (!el || el.locked) return;
+  selectElement(el.id);
+
+  const rect = canvas.getBoundingClientRect();
+  dragOffsetX = (e.clientX - rect.left) / zoom - el.x;
+  dragOffsetY = (e.clientY - rect.top) / zoom - el.y;
+  isDraggingEl = true;
+
+  const onMove = (me) => {
+    if (!isDraggingEl) return;
+    const r = canvas.getBoundingClientRect();
+    const newX = Math.round((me.clientX - r.left) / zoom - dragOffsetX);
+    const newY = Math.round((me.clientY - r.top) / zoom - dragOffsetY);
+    el.x = Math.max(0, Math.min(canvasW - el.w, newX));
+    el.y = Math.max(0, Math.min(canvasH - el.h, newY));
+    const dom = document.getElementById(el.id);
+    dom.style.left = el.x + 'px';
+    dom.style.top = el.y + 'px';
+    updatePropInputs(el);
+  };
+  const onUp = () => {
+    isDraggingEl = false;
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    saveHistory();
+    updatePropInputs(getElById(selectedId));
+  };
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
+// ── RESIZE ──
+function addResizeHandles(id) {
+  const dom = document.getElementById(id);
+  if (!dom) return;
+  dom.querySelectorAll('.resize-handle').forEach(h => h.remove());
+  ['tl','tr','bl','br','tm','bm','ml','mr'].forEach(pos => {
+    const h = document.createElement('div');
+    h.className = 'resize-handle ' + pos;
+    h.addEventListener('mousedown', e => startResize(e, id, pos));
+    dom.appendChild(h);
+  });
+}
+
+function removeResizeHandles(id) {
+  const dom = document.getElementById(id);
+  if (dom) dom.querySelectorAll('.resize-handle').forEach(h => h.remove());
+}
+
+function startResize(e, id, pos) {
+  e.preventDefault(); e.stopPropagation();
+  const el = getElById(id);
+  if (!el) return;
+  resizing = { el, pos };
+  resizeStartX = e.clientX; resizeStartY = e.clientY;
+  resizeStartW = el.w; resizeStartH = el.h;
+  resizeStartLeft = el.x; resizeStartTop = el.y;
+
+  const onMove = (me) => {
+    const dx = (me.clientX - resizeStartX) / zoom;
+    const dy = (me.clientY - resizeStartY) / zoom;
+    const { el, pos } = resizing;
+    if (pos.includes('r')) el.w = Math.max(40, resizeStartW + dx);
+    if (pos.includes('l')) { el.w = Math.max(40, resizeStartW - dx); el.x = resizeStartLeft + (resizeStartW - el.w); }
+    if (pos.includes('b')) el.h = Math.max(20, resizeStartH + dy);
+    if (pos.includes('t')) { el.h = Math.max(20, resizeStartH - dy); el.y = resizeStartTop + (resizeStartH - el.h); }
+    if (pos === 'tm' || pos === 'bm') { el.w = resizeStartW; }
+    if (pos === 'ml' || pos === 'mr') { el.h = resizeStartH; }
+    el.w = Math.round(el.w); el.h = Math.round(el.h);
+    el.x = Math.round(el.x); el.y = Math.round(el.y);
+    const dom = document.getElementById(el.id);
+    dom.style.left = el.x + 'px'; dom.style.top = el.y + 'px';
+    dom.style.width = el.w + 'px'; dom.style.height = el.h + 'px';
+    updatePropInputs(el);
+  };
+  const onUp = () => {
+    resizing = null;
+    saveHistory();
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  };
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
+// ── SELECT ──
+function selectElement(id) {
+  if (selectedId && selectedId !== id) {
+    const prev = document.getElementById(selectedId);
+    if (prev) { prev.classList.remove('selected'); removeResizeHandles(selectedId); }
+  }
+  selectedId = id;
+  if (id) {
+    const dom = document.getElementById(id);
+    if (dom) { dom.classList.add('selected'); addResizeHandles(id); }
+    showProps(getElById(id));
+    updateLayers();
+  }
+}
+
+function deselectAll() {
+  if (selectedId) {
+    const dom = document.getElementById(selectedId);
+    if (dom) { dom.classList.remove('selected'); removeResizeHandles(selectedId); }
+  }
+  selectedId = null;
+  propsContent.innerHTML = `<div class="no-selection"><div class="big">✦</div><div>Select an element to edit its properties</div></div>`;
+  updateLayers();
+}
+
+canvas.addEventListener('click', e => { if (e.target === canvas) deselectAll(); });
+
+// ── DOUBLE-CLICK EDIT ──
+function onElDblClick(e) {
+  const el = getElById(e.currentTarget.id);
+  if (!el) return;
+  const dom = document.getElementById(el.id);
+  const text = dom.querySelector('h1,h2,h3,p,button,span:not(.resize-handle),a');
+  if (text) {
+    text.contentEditable = 'true';
+    text.focus();
+    text.addEventListener('blur', () => {
+      text.contentEditable = 'false';
+      el.html = dom.innerHTML.replace(/<div class="resize-handle[^"]*"[^>]*><\/div>/g, '');
+      saveHistory();
+    }, { once: true });
+  }
+}
+
+// ── PROPERTIES PANEL ──
+function showProps(el) {
+  if (!el) return;
+  propsContent.innerHTML = `
+    <div class="prop-group">
+      <div class="prop-group-title">Position & Size</div>
+      <div class="prop-row"><span class="prop-label">X</span><input class="prop-input" id="px" type="number" value="${Math.round(el.x)}" oninput="updateProp('x',+this.value)"></div>
+      <div class="prop-row"><span class="prop-label">Y</span><input class="prop-input" id="py" type="number" value="${Math.round(el.y)}" oninput="updateProp('y',+this.value)"></div>
+      <div class="prop-row"><span class="prop-label">Width</span><input class="prop-input" id="pw" type="number" value="${Math.round(el.w)}" oninput="updateProp('w',+this.value)"></div>
+      <div class="prop-row"><span class="prop-label">Height</span><input class="prop-input" id="ph" type="number" value="${Math.round(el.h)}" oninput="updateProp('h',+this.value)"></div>
+    </div>
+    <div class="prop-group">
+      <div class="prop-group-title">Appearance</div>
+      <div class="prop-row">
+        <span class="prop-label">Radius</span>
+        <input class="prop-input" type="number" value="${el.borderRadius}" oninput="updateProp('borderRadius',+this.value)">
+      </div>
+      <div class="prop-row">
+        <span class="prop-label">Opacity</span>
+        <input class="prop-range" type="range" min="0" max="1" step="0.01" value="${el.opacity}" oninput="updateProp('opacity',+this.value)">
+        <span style="font-size:11px;color:var(--text-muted);width:32px;text-align:right">${Math.round(el.opacity*100)}%</span>
+      </div>
+    </div>
+    <div class="prop-group">
+      <div class="prop-group-title">Actions</div>
+      <div class="prop-row">
+        <button class="prop-btn" onclick="duplicateEl('${el.id}')">⧉ Duplicate</button>
+        <button class="prop-btn danger" onclick="deleteEl('${el.id}')" style="margin-left:auto;color:var(--danger);border-color:var(--danger)">✕ Delete</button>
+      </div>
+      <div class="prop-row">
+        <button class="prop-btn" onclick="bringFront('${el.id}')">↑ Front</button>
+        <button class="prop-btn" onclick="sendBack('${el.id}')">↓ Back</button>
+      </div>
+    </div>
+  `;
+}
+
+function updatePropInputs(el) {
+  if (!el) return;
+  const px = document.getElementById('px'); if (px) px.value = Math.round(el.x);
+  const py = document.getElementById('py'); if (py) py.value = Math.round(el.y);
+  const pw = document.getElementById('pw'); if (pw) pw.value = Math.round(el.w);
+  const ph = document.getElementById('ph'); if (ph) ph.value = Math.round(el.h);
+}
+
+function updateProp(prop, val) {
+  const el = getElById(selectedId);
+  if (!el) return;
+  el[prop] = val;
+  const dom = document.getElementById(el.id);
+  if (prop === 'x') dom.style.left = val + 'px';
+  else if (prop === 'y') dom.style.top = val + 'px';
+  else if (prop === 'w') dom.style.width = val + 'px';
+  else if (prop === 'h') dom.style.height = val + 'px';
+  else if (prop === 'borderRadius') dom.style.borderRadius = val + 'px';
+  else if (prop === 'opacity') dom.style.opacity = val;
+}
+
+// ── LAYERS ──
+function updateLayers() {
+  const list = document.getElementById('layer-list');
+  list.innerHTML = '';
+  [...elements].reverse().forEach(el => {
+    const item = document.createElement('div');
+    item.className = 'layer-item' + (el.id === selectedId ? ' selected' : '');
+    item.innerHTML = `<span class="layer-icon">${getTypeIcon(el.type)}</span><span class="layer-name">${el.label}</span><span class="layer-vis" onclick="toggleVis(event,'${el.id}')">${el.visible ? '👁' : '🚫'}</span>`;
+    item.addEventListener('click', () => selectElement(el.id));
+    list.appendChild(item);
+  });
+}
+
+function getTypeIcon(type) {
+  const icons = { nav:'🔗', hero:'🌟', section:'📄', footer:'🏠', text:'🆃', heading:'📰', image:'🖼', btn:'🔲', card:'🃏', form:'📝', badge:'🏷', divider:'➖', testimonial:'💬', pricing:'💲', features:'⚡', stats:'📊' };
+  return icons[type] || '◻';
+}
+
+function toggleVis(e, id) {
+  e.stopPropagation();
+  const el = getElById(id);
+  if (el) { el.visible = !el.visible; document.getElementById(id).style.display = el.visible ? 'block' : 'none'; updateLayers(); }
+}
+
+// ── ELEMENT OPERATIONS ──
+function deleteEl(id) {
+  const dom = document.getElementById(id);
+  if (dom) dom.remove();
+  elements = elements.filter(e => e.id !== id);
+  if (selectedId === id) deselectAll();
+  updateLayers(); saveHistory();
+}
+
+function duplicateEl(id) {
+  const el = getElById(id);
+  if (!el) return;
+  const copy = JSON.parse(JSON.stringify(el));
+  copy.id = 'el_' + (idCounter++);
+  copy.x += 20; copy.y += 20;
+  copy.zIndex = elements.length + 1;
+  elements.push(copy);
+  renderElement(copy);
+  selectElement(copy.id);
+  updateLayers(); saveHistory();
+  showToast('Duplicated!');
+}
+
+function bringFront(id) {
+  const el = getElById(id);
+  if (el) { el.zIndex = Math.max(...elements.map(e => e.zIndex)) + 1; document.getElementById(id).style.zIndex = el.zIndex; }
+}
+
+function sendBack(id) {
+  const el = getElById(id);
+  if (el) { el.zIndex = Math.max(1, Math.min(...elements.map(e => e.zIndex)) - 1); document.getElementById(id).style.zIndex = el.zIndex; }
+}
+
+function clearCanvas() {
+  if (!confirm('Clear all elements?')) return;
+  elements.forEach(el => { const dom = document.getElementById(el.id); if (dom) dom.remove(); });
+  elements = []; deselectAll(); updateLayers(); saveHistory();
+}
+
+// ── CONTEXT MENU ──
+const ctxMenu = document.getElementById('ctx-menu');
+function onCtxMenu(e) {
+  e.preventDefault();
+  selectElement(e.currentTarget.id);
+  ctxMenu.style.display = 'block';
+  ctxMenu.style.left = e.clientX + 'px';
+  ctxMenu.style.top = e.clientY + 'px';
+}
+document.addEventListener('click', () => ctxMenu.style.display = 'none');
+function ctxDuplicate() { if (selectedId) duplicateEl(selectedId); }
+function ctxDelete() { if (selectedId) deleteEl(selectedId); }
+function ctxBringFront() { if (selectedId) bringFront(selectedId); }
+function ctxSendBack() { if (selectedId) sendBack(selectedId); }
+
+// ── HISTORY ──
+function saveHistory() {
+  const state = JSON.stringify(elements.map(el => ({...el})));
+  if (historyIndex < history.length - 1) history = history.slice(0, historyIndex + 1);
+  history.push(state);
+  if (history.length > 50) history.shift();
+  historyIndex = history.length - 1;
+}
+
+function undo() {
+  if (historyIndex <= 0) return;
+  historyIndex--;
+  restoreHistory(JSON.parse(history[historyIndex]));
+}
+
+function redo() {
+  if (historyIndex >= history.length - 1) return;
+  historyIndex++;
+  restoreHistory(JSON.parse(history[historyIndex]));
+}
+
+function restoreHistory(state) {
+  canvas.querySelectorAll('.canvas-el').forEach(el => el.remove());
+  elements = state;
+  idCounter = Math.max(idCounter, ...elements.map(e => parseInt(e.id.split('_')[1]) + 1));
+  elements.forEach(el => renderElement(el));
+  deselectAll(); updateLayers();
+}
+
+// ── EXPORT ──
+function exportHTML() {
+  const styles = elements.map(el => `
+    #${el.id} { position:absolute; left:${el.x}px; top:${el.y}px; width:${el.w}px; height:${el.h}px; z-index:${el.zIndex}; opacity:${el.opacity}; border-radius:${el.borderRadius}px; }`).join('');
+  const body = elements.map(el => `<div id="${el.id}" style="position:absolute;left:${el.x}px;top:${el.y}px;width:${el.w}px;height:${el.h}px;z-index:${el.zIndex};opacity:${el.opacity};border-radius:${el.borderRadius}px">${el.html}</div>`).join('\n');
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My Design</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{width:${canvasW}px;height:${canvasH}px;position:relative;overflow:hidden}</style>
+</head><body>${body}</body></html>`;
+  const blob = new Blob([html], { type: 'text/html' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'design.html'; a.click();
+  showToast('Exported!');
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.contentEditable === 'true') return;
+  if (e.key === 'Delete' || e.key === 'Backspace') { if (selectedId) deleteEl(selectedId); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.shiftKey ? redo() : undo(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'd') { e.preventDefault(); if (selectedId) duplicateEl(selectedId); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'e') { e.preventDefault(); exportHTML(); }
+  if (selectedId) {
+    const el = getElById(selectedId);
+    const step = e.shiftKey ? 10 : 1;
+    if (e.key === 'ArrowLeft') { el.x -= step; document.getElementById(el.id).style.left = el.x + 'px'; updatePropInputs(el); }
+    if (e.key === 'ArrowRight') { el.x += step; document.getElementById(el.id).style.left = el.x + 'px'; updatePropInputs(el); }
+    if (e.key === 'ArrowUp') { el.y -= step; document.getElementById(el.id).style.top = el.y + 'px'; updatePropInputs(el); }
+    if (e.key === 'ArrowDown') { el.y += step; document.getElementById(el.id).style.top = el.y + 'px'; updatePropInputs(el); }
+  }
+});
+
+// ── TAB SWITCHING ──
+function switchTab(name, el) {
+  document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.sidebar-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast'); t.textContent = msg;
+  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── HELPERS ──
+function getElById(id) { return elements.find(e => e.id === id); }
+
+// ── INIT ──
+canvas.style.width = canvasW + 'px';
+canvas.style.height = canvasH + 'px';
+saveHistory();
+
+window.addEventListener('load', () => {
+  setTimeout(autoZoom, 100);
+  showToast('👋 Drag components to start!');
+});
+
+window.addEventListener('resize', autoZoom);
+</script>
+</body>
+</html>
