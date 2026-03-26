@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FrameForge — EgoTECH Design Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0c14;--surface:#13131e;--surface2:#1a1a28;--border:#252538;--border2:#32324a;
+  --accent:#00c896;--accent2:#7c6af6;--accent3:#f7b731;--red:#ff5f5f;
+  --text:#e0e0f0;--text2:#9090b0;--text3:#555570;--canvas-bg:#f4f3f0;
+  --sw:264px;--pw:280px;--th:48px;--nav:42px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+
+/* ── EGOTECH NAV ── */
+#ego-nav{height:var(--nav);background:#090910;border-bottom:1px solid rgba(0,200,150,.12);display:flex;align-items:center;padding:0 18px;flex-shrink:0;z-index:500;}
+.ego-brand{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:8px;margin-right:24px;}
+.ego-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
+.ego-links{display:flex;align-items:center;gap:2px;flex:1;}
+.ego-link{color:var(--text2);font-size:12px;font-weight:500;padding:5px 10px;border-radius:5px;text-decoration:none;transition:all .15s;}
+.ego-link:hover{color:var(--text);background:var(--surface2);}
+.ego-right{display:flex;align-items:center;gap:8px;}
+.ego-tag{background:rgba(0,200,150,.1);color:var(--accent);font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;border:1px solid rgba(0,200,150,.2);letter-spacing:.4px;}
+.ego-login{background:var(--accent2);color:#fff;font-size:11px;font-weight:600;padding:5px 14px;border-radius:6px;border:none;cursor:pointer;font-family:'Inter',sans-serif;}
+
+/* ── TOOLBAR ── */
+#toolbar{height:var(--th);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:6px;z-index:400;flex-shrink:0;}
+.tbrand{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;color:#fff;margin-right:4px;}
+.tbrand span{color:var(--accent);}
+.tsep{width:1px;height:20px;background:var(--border);margin:0 3px;}
+.tbtn{background:none;border:1px solid transparent;color:var(--text2);font-family:'Inter',sans-serif;font-size:11px;font-weight:500;padding:4px 9px;border-radius:5px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s;white-space:nowrap;}
+.tbtn:hover{background:var(--surface2);color:var(--text);border-color:var(--border);}
+.tbtn.primary{background:var(--accent);color:#000;font-weight:700;border-color:transparent;}
+.tbtn.primary:hover{background:#00b085;color:#000;}
+#csz{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:10px;padding:3px 6px;border-radius:5px;cursor:pointer;outline:none;}
+.zc{display:flex;align-items:center;gap:3px;margin-left:auto;}
+.zbtn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-size:12px;width:22px;height:22px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.zbtn:hover{color:var(--accent);border-color:var(--accent);}
+#zlbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);min-width:34px;text-align:center;}
+
+/* ── MAIN ── */
+#main{display:flex;flex:1;overflow:hidden;}
+
+/* ── SIDEBAR ── */
+#sidebar{width:var(--sw);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.stabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+.stab{flex:1;padding:8px 4px;font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;text-align:center;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;transition:all .15s;}
+.stab.on{color:var(--accent);border-bottom-color:var(--accent);}
+.spanel{display:none;flex:1;overflow-y:auto;padding:10px;}
+.spanel.on{display:block;}
+.slbl{font-size:10px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--text3);margin:14px 0 7px;}
+.slbl:first-child{margin-top:0;}
+.slbl.new{color:var(--accent3);}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.ccard{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px 7px;cursor:grab;text-align:center;transition:all .15s;user-select:none;}
+.ccard:hover{border-color:var(--accent2);background:#1e1e30;transform:translateY(-1px);}
+.ccard:active{cursor:grabbing;}
+.ccard .ci{font-size:18px;margin-bottom:3px;display:block;}
+.ccard .cn{font-size:10px;color:var(--text2);font-weight:500;}
+.ccard.new-comp{border-color:rgba(247,183,49,.2);background:rgba(247,183,49,.04);}
+.ccard.new-comp:hover{border-color:var(--accent3);}
+.layer-item{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:5px;cursor:pointer;font-size:11px;transition:background .1s;}
+.layer-item:hover{background:var(--surface2);}
+.layer-item.on{background:rgba(124,106,246,.18);color:var(--accent2);}
+.layer-icon{font-size:11px;color:var(--text3);}
+.layer-name{flex:1;font-size:11px;}
+.layer-eye{font-size:10px;color:var(--text3);cursor:pointer;opacity:.5;transition:opacity .15s;}
+.layer-eye:hover{opacity:1;}
+
+/* ── CANVAS ── */
+#cwrap{flex:1;overflow:auto;background:#141420;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.03) 1px,transparent 0);background-size:22px 22px;display:flex;align-items:flex-start;justify-content:center;padding:36px;}
+#cscale{transform-origin:top center;transition:transform .2s;}
+#canvas{background:var(--canvas-bg);position:relative;box-shadow:0 24px 80px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.04);border-radius:2px;overflow:hidden;}
+#canvas.dov::after{content:'';position:absolute;inset:0;border:2px dashed var(--accent2);border-radius:2px;background:rgba(124,106,246,.04);pointer-events:none;}
+.cel{position:absolute;cursor:move;user-select:none;outline:none;}
+.cel.sel{outline:2px solid var(--accent2);outline-offset:1px;}
+.rh{position:absolute;width:8px;height:8px;background:var(--accent2);border:1.5px solid #fff;border-radius:2px;z-index:999;}
+.rh.tl{top:-4px;left:-4px;cursor:nw-resize;}.rh.tr{top:-4px;right:-4px;cursor:ne-resize;}
+.rh.bl{bottom:-4px;left:-4px;cursor:sw-resize;}.rh.br{bottom:-4px;right:-4px;cursor:se-resize;}
+.rh.tm{top:-4px;left:50%;transform:translateX(-50%);cursor:n-resize;}
+.rh.bm{bottom:-4px;left:50%;transform:translateX(-50%);cursor:s-resize;}
+.rh.ml{left:-4px;top:50%;transform:translateY(-50%);cursor:w-resize;}
+.rh.mr{right:-4px;top:50%;transform:translateY(-50%);cursor:e-resize;}
+
+/* ── PROPS ── */
+#props{width:var(--pw);background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+#props h3{padding:12px 14px 10px;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--text2);border-bottom:1px solid var(--border);flex-shrink:0;}
+#pcontent{flex:1;overflow-y:auto;padding:10px;}
+.pg{margin-bottom:12px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;overflow:hidden;}
+.pgt{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text2);padding:7px 9px 5px;border-bottom:1px solid var(--border);}
+.pr{display:flex;align-items:center;padding:5px 9px;gap:7px;border-bottom:1px solid var(--border);}
+.pr:last-child{border-bottom:none;}
+.pl{font-size:11px;color:var(--text2);min-width:52px;}
+.pi{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:10px;padding:3px 5px;border-radius:3px;outline:none;transition:border-color .15s;}
+.pi:focus{border-color:var(--accent2);}
+.pbtn{background:var(--surface);border:1px solid var(--border);color:var(--text2);font-size:10px;padding:3px 7px;border-radius:3px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;}
+.pbtn:hover{border-color:var(--accent2);color:var(--text);}
+.no-sel{text-align:center;padding:36px 16px;color:var(--text2);font-size:11px;line-height:1.9;}
+.no-sel .big{font-size:28px;margin-bottom:8px;}
+
+/* ── CONTEXT MENU ── */
+#ctx{position:fixed;display:none;background:var(--surface);border:1px solid var(--border);border-radius:7px;box-shadow:0 8px 28px rgba(0,0,0,.5);z-index:9999;overflow:hidden;min-width:150px;}
+.ci2{padding:7px 12px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:7px;color:var(--text);transition:background .1s;}
+.ci2:hover{background:var(--surface2);}
+.ci2.red{color:var(--red);}
+.csep{height:1px;background:var(--border);margin:2px 0;}
+
+/* ── MODALS ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:8000;display:none;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:460px;max-width:92vw;box-shadow:0 16px 60px rgba(0,0,0,.6);overflow:hidden;}
+.mhead{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.mhead h4{font-size:14px;font-weight:600;color:var(--text);}
+.mclose{background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;line-height:1;padding:0;}
+.mbody{padding:18px;}
+.mrow{margin-bottom:14px;}
+.mrow label{display:block;font-size:11px;color:var(--text2);margin-bottom:5px;font-weight:500;}
+.mrow input,.mrow textarea,.mrow select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Inter',sans-serif;font-size:12px;padding:7px 10px;border-radius:5px;outline:none;transition:border-color .15s;}
+.mrow input:focus,.mrow textarea:focus{border-color:var(--accent2);}
+.mrow textarea{resize:vertical;min-height:70px;}
+.mfooter{padding:12px 18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+.mbtn-c{background:none;border:1px solid var(--border);color:var(--text2);font-size:12px;padding:6px 14px;border-radius:5px;cursor:pointer;font-family:'Inter',sans-serif;}
+.mbtn-ok{background:var(--accent);color:#000;font-size:12px;font-weight:700;padding:6px 16px;border-radius:5px;border:none;cursor:pointer;font-family:'Inter',sans-serif;}
+
+/* ── HOW TO USE PANEL ── */
+#howto{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8000;display:none;align-items:center;justify-content:center;}
+#howto.open{display:flex;}
+#howto-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:700px;max-width:95vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 70px rgba(0,0,0,.7);}
+.hhead{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.hhead h2{font-size:16px;font-weight:700;color:var(--text);}
+.hhead-right{display:flex;align-items:center;gap:10px;}
+.htag{background:rgba(0,200,150,.1);color:var(--accent);font-size:11px;font-weight:600;padding:3px 11px;border-radius:20px;border:1px solid rgba(0,200,150,.2);}
+.hbody{overflow-y:auto;padding:22px;}
+.hsect{font-size:10px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--text3);margin:20px 0 10px;}
+.hsect:first-child{margin-top:0;}
+.hflow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--text2);margin-bottom:18px;}
+.hpill{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;}
+.harrow{color:var(--text3);}
+.hsteps{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
+.hstep{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;gap:10px;}
+.hnum{width:26px;height:26px;border-radius:50%;background:rgba(0,200,150,.1);color:var(--accent);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(0,200,150,.2);}
+.htxt h4{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.htxt p{font-size:11px;color:var(--text2);line-height:1.65;}
+.hnew-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
+.hnew{background:rgba(247,183,49,.05);border:1px solid rgba(247,183,49,.2);border-radius:8px;padding:12px 14px;}
+.hnew h5{font-size:11px;font-weight:700;color:var(--accent3);margin-bottom:4px;}
+.hnew p{font-size:11px;color:var(--text2);line-height:1.6;}
+.hkbd{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px;}
+.hk{display:inline-flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;}
+.hk em{color:var(--text3);font-style:normal;font-size:9px;}
+.htip{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:5px;padding:9px 12px;font-size:11px;color:var(--text2);line-height:1.65;margin-bottom:5px;}
+.htip strong{color:var(--text);font-weight:600;}
+.hstart-btn{width:100%;background:var(--accent);color:#000;border:none;font-size:13px;font-weight:700;padding:11px;border-radius:7px;cursor:pointer;margin-top:18px;font-family:'Inter',sans-serif;}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:11px;padding:7px 16px;border-radius:18px;box-shadow:0 4px 18px rgba(0,0,0,.4);z-index:9999;transition:transform .3s;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- EGOTECH NAVBAR -->
+<nav id="ego-nav">
+  <a class="ego-brand" href="https://www.egotechworld.com" target="_blank">
+    <div class="ego-dot"></div>EgoTECH
+  </a>
+  <div class="ego-links">
+    <a class="ego-link" href="https://www.egotechworld.com/index.php" target="_blank">Home</a>
+    <a class="ego-link" href="https://www.egotechworld.com/jobs.php" target="_blank">Jobs</a>
+    <a class="ego-link" href="https://www.egotechworld.com/services.php" target="_blank">Services</a>
+    <a class="ego-link" href="https://www.egotechworld.com/projects.php" target="_blank">Projects</a>
+    <a class="ego-link" href="https://www.egotechworld.com/courses.php" target="_blank">Courses</a>
+    <a class="ego-link" href="https://www.egotechworld.com/aitools/" target="_blank">AI Tools</a>
+    <a class="ego-link" href="https://www.egotechworld.com/about.php" target="_blank">About</a>
+  </div>
+  <div class="ego-right">
+    <span class="ego-tag">Design Tool</span>
+    <button class="ego-login" onclick="window.open('https://www.egotechworld.com/login.php','_blank')">Login</button>
+  </div>
+</nav>
+
+<!-- TOOL TOOLBAR -->
+<div id="toolbar">
+  <div class="tbrand">Frame<span>Forge</span></div>
+  <div class="tsep"></div>
+  <button class="tbtn" onclick="openHowTo()" style="color:var(--accent3);border-color:rgba(247,183,49,.25);background:rgba(247,183,49,.06)">❓ How to Use</button>
+  <button class="tbtn" onclick="undo()">↩ Undo</button>
+  <button class="tbtn" onclick="redo()">↪ Redo</button>
+  <div class="tsep"></div>
+  <select id="csz" onchange="changeSize(this.value)">
+    <option value="1440,900">Desktop 1440×900</option>
+    <option value="1280,800">Laptop 1280×800</option>
+    <option value="768,1024">Tablet 768×1024</option>
+    <option value="390,844">Mobile 390×844</option>
+    <option value="1200,628">Social OG 1200×628</option>
+  </select>
+  <div class="tsep"></div>
+  <button class="tbtn" onclick="clearAll()">🗑 Clear</button>
+  <button class="tbtn primary" onclick="exportHTML()">⬇ Export HTML</button>
+  <div class="zc">
+    <button class="zbtn" onclick="setZoom(zoom-.1)">−</button>
+    <span id="zlbl">100%</span>
+    <button class="zbtn" onclick="setZoom(zoom+.1)">+</button>
+    <button class="zbtn" onclick="autoZoom()" title="Fit">⊙</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="sidebar">
+    <div class="stabs">
+      <div class="stab on" onclick="switchTab('comp',this)">Components</div>
+      <div class="stab" onclick="switchTab('layers',this)">Layers</div>
+    </div>
+    <div id="tab-comp" class="spanel on">
+      <div class="slbl">Layout</div>
+      <div class="cgrid">
+        <div class="ccard" draggable="true" data-type="egonav"><span class="ci">🌐</span><span class="cn">EgoTECH Nav</span></div>
+        <div class="ccard" draggable="true" data-type="nav"><span class="ci">🔗</span><span class="cn">Navbar</span></div>
+        <div class="ccard" draggable="true" data-type="hero"><span class="ci">🌟</span><span class="cn">Hero</span></div>
+        <div class="ccard" draggable="true" data-type="footer"><span class="ci">🏠</span><span class="cn">Footer</span></div>
+        <div class="ccard" draggable="true" data-type="section"><span class="ci">📄</span><span class="cn">Section</span></div>
+      </div>
+      <div class="slbl">Content</div>
+      <div class="cgrid">
+        <div class="ccard" draggable="true" data-type="heading"><span class="ci">📰</span><span class="cn">Heading</span></div>
+        <div class="ccard" draggable="true" data-type="text"><span class="ci">🆃</span><span class="cn">Text</span></div>
+        <div class="ccard" draggable="true" data-type="image"><span class="ci">🖼</span><span class="cn">Image</span></div>
+        <div class="ccard" draggable="true" data-type="divider"><span class="ci">➖</span><span class="cn">Divider</span></div>
+      </div>
+      <div class="slbl">UI Elements</div>
+      <div class="cgrid">
+        <div class="ccard" draggable="true" data-type="btn"><span class="ci">🔲</span><span class="cn">Button</span></div>
+        <div class="ccard" draggable="true" data-type="card"><span class="ci">🃏</span><span class="cn">Card</span></div>
+        <div class="ccard" draggable="true" data-type="form"><span class="ci">📝</span><span class="cn">Form</span></div>
+        <div class="ccard" draggable="true" data-type="badge"><span class="ci">🏷</span><span class="cn">Badge</span></div>
+      </div>
+      <div class="slbl">Sections</div>
+      <div class="cgrid">
+        <div class="ccard" draggable="true" data-type="testimonial"><span class="ci">💬</span><span class="cn">Testimonial</span></div>
+        <div class="ccard" draggable="true" data-type="pricing"><span class="ci">💲</span><span class="cn">Pricing</span></div>
+        <div class="ccard" draggable="true" data-type="features"><span class="ci">⚡</span><span class="cn">Features</span></div>
+        <div class="ccard" draggable="true" data-type="stats"><span class="ci">📊</span><span class="cn">Stats</span></div>
+      </div>
+      <div class="slbl new">✨ New Components</div>
+      <div class="cgrid">
+        <div class="ccard new-comp" draggable="true" data-type="note"><span class="ci">📌</span><span class="cn">Sticky Note</span></div>
+        <div class="ccard new-comp" draggable="true" data-type="youtube"><span class="ci">▶️</span><span class="cn">YouTube</span></div>
+        <div class="ccard new-comp" draggable="true" data-type="code"><span class="ci">💻</span><span class="cn">Code Block</span></div>
+        <div class="ccard new-comp" draggable="true" data-type="codeexp"><span class="ci">🧠</span><span class="cn">Code Explain</span></div>
+      </div>
+    </div>
+    <div id="tab-layers" class="spanel">
+      <div id="layer-list"></div>
+    </div>
+  </div>
+
+  <div id="cwrap">
+    <div id="cscale"><div id="canvas"></div></div>
+  </div>
+
+  <div id="props">
+    <h3>Properties</h3>
+    <div id="pcontent">
+      <div class="no-sel"><div class="big">✦</div><div>Drag a component onto<br>the canvas to start</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div id="ctx">
+  <div class="ci2" onclick="ctxDup()">⧉ Duplicate</div>
+  <div class="ci2" onclick="ctxFront()">⬆ Bring to Front</div>
+  <div class="ci2" onclick="ctxBack()">⬇ Send to Back</div>
+  <div class="csep"></div>
+  <div class="ci2 red" onclick="ctxDel()">✕ Delete</div>
+</div>
+
+<!-- YOUTUBE MODAL -->
+<div id="yt-modal" class="modal-bg">
+  <div class="modal">
+    <div class="mhead"><h4>▶ Embed YouTube Video</h4><button class="mclose" onclick="closeModal('yt-modal')">×</button></div>
+    <div class="mbody">
+      <div class="mrow"><label>YouTube URL or Video ID</label><input id="yt-url" placeholder="https://youtube.com/watch?v=... or video ID"></div>
+      <div class="mrow"><label>Label / Title (optional)</label><input id="yt-title" placeholder="e.g. Python Tutorial for Beginners"></div>
+    </div>
+    <div class="mfooter"><button class="mbtn-c" onclick="closeModal('yt-modal')">Cancel</button><button class="mbtn-ok" onclick="confirmYT()">Embed Video</button></div>
+  </div>
+</div>
+
+<!-- NOTE MODAL -->
+<div id="note-modal" class="modal-bg">
+  <div class="modal">
+    <div class="mhead"><h4>📌 Add Sticky Note</h4><button class="mclose" onclick="closeModal('note-modal')">×</button></div>
+    <div class="mbody">
+      <div class="mrow"><label>Note text</label><textarea id="note-text" rows="4" placeholder="Write your note, reminder, or annotation..."></textarea></div>
+      <div class="mrow"><label>Colour</label>
+        <select id="note-color">
+          <option value="#fef08a,#292524">🟡 Yellow</option>
+          <option value="#bbf7d0,#14532d">🟢 Green</option>
+          <option value="#fecaca,#7f1d1d">🔴 Red</option>
+          <option value="#bfdbfe,#1e3a5f">🔵 Blue</option>
+          <option value="#e9d5ff,#3b0764">🟣 Purple</option>
+        </select>
+      </div>
+    </div>
+    <div class="mfooter"><button class="mbtn-c" onclick="closeModal('note-modal')">Cancel</button><button class="mbtn-ok" onclick="confirmNote()">Add Note</button></div>
+  </div>
+</div>
+
+<!-- CODE MODAL -->
+<div id="code-modal" class="modal-bg">
+  <div class="modal" style="width:520px;max-width:95vw;">
+    <div class="mhead"><h4>💻 Code Block / Explanation</h4><button class="mclose" onclick="closeModal('code-modal')">×</button></div>
+    <div class="mbody">
+      <div class="mrow"><label>Language</label>
+        <select id="code-lang"><option>Python</option><option>JavaScript</option><option>HTML</option><option>CSS</option><option>PHP</option><option>Java</option><option>SQL</option><option>Bash</option></select>
+      </div>
+      <div class="mrow"><label>Code</label><textarea id="code-src" rows="6" placeholder="Paste your code here..." style="font-family:monospace;font-size:12px;"></textarea></div>
+      <div class="mrow"><label>Explanation <span style="color:var(--text3)">(shown in panel beside code)</span></label><textarea id="code-explain" rows="3" placeholder="Explain what this code does in plain language..."></textarea></div>
+      <div class="mrow"><label>Display type</label>
+        <select id="code-type"><option value="code">Code Block only</option><option value="codeexp">Code + Explanation panel</option></select>
+      </div>
+    </div>
+    <div class="mfooter"><button class="mbtn-c" onclick="closeModal('code-modal')">Cancel</button><button class="mbtn-ok" onclick="confirmCode()">Add to Canvas</button></div>
+  </div>
+</div>
+
+<!-- HOW TO USE -->
+<div id="howto">
+  <div id="howto-box">
+    <div class="hhead">
+      <h2>How to Use FrameForge</h2>
+      <div class="hhead-right">
+        <span class="htag">EgoTECH Design Tool</span>
+        <button class="mclose" onclick="closeHowTo()">×</button>
+      </div>
+    </div>
+    <div class="hbody">
+      <div class="hsect">⚡ Quick Workflow</div>
+      <div class="hflow">
+        <span class="hpill">1. Choose canvas size</span><span class="harrow">→</span>
+        <span class="hpill">2. Drag a component</span><span class="harrow">→</span>
+        <span class="hpill">3. Move &amp; resize</span><span class="harrow">→</span>
+        <span class="hpill">4. Double-click to edit text</span><span class="harrow">→</span>
+        <span class="hpill">5. Export HTML</span>
+      </div>
+
+      <div class="hsect">📋 Step by Step</div>
+      <div class="hsteps">
+        <div class="hstep"><div class="hnum">1</div><div class="htxt"><h4>Choose canvas size</h4><p>Use the dropdown in the toolbar — Desktop, Tablet, Mobile, or Social OG. Canvas auto-zooms to fit.</p></div></div>
+        <div class="hstep"><div class="hnum">2</div><div class="htxt"><h4>Drag components onto canvas</h4><p>Grab any card from the left sidebar and drop it anywhere on the canvas. It lands exactly where you release.</p></div></div>
+        <div class="hstep"><div class="hnum">3</div><div class="htxt"><h4>Select &amp; move elements</h4><p>Click an element to select it (purple outline). Then drag to reposition it freely anywhere on the canvas.</p></div></div>
+        <div class="hstep"><div class="hnum">4</div><div class="htxt"><h4>Resize with handles</h4><p>8 white handles appear on selection. Drag corners or edges to resize. Corners = diagonal, edges = one axis.</p></div></div>
+        <div class="hstep"><div class="hnum">5</div><div class="htxt"><h4>Double-click to edit text</h4><p>Double-click any element to edit its text inline. Click outside when done to save your changes.</p></div></div>
+        <div class="hstep"><div class="hnum">6</div><div class="htxt"><h4>Properties panel (right)</h4><p>Select an element to control X, Y, width, height, opacity. Use action buttons to duplicate or delete.</p></div></div>
+        <div class="hstep"><div class="hnum">7</div><div class="htxt"><h4>Layers tab</h4><p>Switch to Layers to see all elements. Click to select. Toggle 👁 to show/hide. Use Front/Back to reorder.</p></div></div>
+        <div class="hstep"><div class="hnum">8</div><div class="htxt"><h4>Export HTML</h4><p>Click the green Export HTML button. Downloads a standalone .html file ready for browsers or code editors.</p></div></div>
+      </div>
+
+      <div class="hsect">✨ New Components (Your RM's Requests)</div>
+      <div class="hnew-grid">
+        <div class="hnew"><h5>📌 Sticky Note</h5><p>Drag onto canvas → a popup appears to type your note and choose a colour. Great for annotations and team reminders.</p></div>
+        <div class="hnew"><h5>▶ YouTube Embed</h5><p>Drag onto canvas → paste any YouTube URL or video ID. The video embeds live and plays directly inside your design.</p></div>
+        <div class="hnew"><h5>💻 Code Block</h5><p>Drag onto canvas → choose language, paste code. Renders with dark-theme syntax highlighting and a macOS-style title bar.</p></div>
+        <div class="hnew"><h5>🧠 Code + Explanation</h5><p>Same as Code Block but adds an explanation panel on the right — perfect for tutorials, courses, and documentation layouts.</p></div>
+      </div>
+
+      <div class="hsect">⌨ Keyboard Shortcuts</div>
+      <div class="hkbd">
+        <span class="hk">Del <em>Delete selected</em></span>
+        <span class="hk">Ctrl+Z <em>Undo</em></span>
+        <span class="hk">Ctrl+Y <em>Redo</em></span>
+        <span class="hk">Ctrl+D <em>Duplicate</em></span>
+        <span class="hk">Ctrl+E <em>Export HTML</em></span>
+        <span class="hk">↑↓←→ <em>Nudge 1px</em></span>
+        <span class="hk">Shift+Arrow <em>Nudge 10px</em></span>
+        <span class="hk">Right-click <em>Context menu</em></span>
+      </div>
+
+      <div class="hsect">💡 Pro Tips</div>
+      <div class="htip"><strong>Right-click any element</strong> on the canvas for a context menu — Duplicate, Bring to Front, Send to Back, or Delete without opening any panel.</div>
+      <div class="htip"><strong>EgoTECH Nav component</strong> adds a real branded navbar matching egotechworld.com style — drop it at the top of your canvas for an instant EgoTECH-themed header.</div>
+      <div class="htip"><strong>Layers tab is essential</strong> when elements overlap — click the layer to select hidden elements, then use Front/Back to reorder them without moving anything manually.</div>
+      <div class="htip"><strong>Undo up to 50 steps</strong> — Ctrl+Z repeatedly to step back through your full design history. Your session is preserved until you refresh the page.</div>
+
+      <button class="hstart-btn" onclick="closeHowTo()">Start Designing →</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast">Done!</div>
+
+<script>
+let els=[],selId=null,idC=1,zoom=1,hist=[],histIdx=-1;
+let draggingType=null,dragOX=0,dragOY=0,isDrag=false,resizing=null;
+let rsX,rsY,rsW,rsH,rsL,rsT,cW=1440,cH=900;
+let pendingType=null,pendingX=0,pendingY=0;
+
+const canvas=document.getElementById('canvas');
+const pcontent=document.getElementById('pcontent');
+const cscale=document.getElementById('cscale');
+
+// ── SIZE ──
+function changeSize(v){[cW,cH]=v.split(',').map(Number);canvas.style.width=cW+'px';canvas.style.height=cH+'px';autoZoom();}
+function autoZoom(){const w=document.getElementById('cwrap');const z=Math.min((w.clientWidth-72)/cW,(w.clientHeight-72)/cH,1);setZoom(+z.toFixed(1));}
+function setZoom(z){zoom=Math.max(0.1,Math.min(3,z));cscale.style.transform=`scale(${zoom})`;document.getElementById('zlbl').textContent=Math.round(zoom*100)+'%';}
+
+// ── TEMPLATES ──
+function getTpl(type){
+  const T={
+    egonav:{w:cW,h:50,x:0,y:0,label:'EgoTECH Nav',html:`<div style="width:100%;height:100%;background:#090910;display:flex;align-items:center;padding:0 20px;font-family:'Segoe UI',sans-serif;border-bottom:1px solid rgba(0,200,150,.15)"><a href="https://egotechworld.com" style="color:#00c896;font-weight:700;font-size:16px;text-decoration:none;margin-right:22px;display:flex;align-items:center;gap:7px" target="_blank"><span style="width:7px;height:7px;border-radius:50%;background:#00c896;display:inline-block"></span>EgoTECH</a><div style="display:flex;gap:2px;flex:1">${['Home','Jobs','Services','Projects','Courses','AI Tools','About'].map(l=>`<a href="https://egotechworld.com" style="color:#9090b0;font-size:12px;padding:5px 10px;border-radius:5px;text-decoration:none">${l}</a>`).join('')}</div><span style="background:rgba(0,200,150,.1);color:#00c896;font-size:10px;padding:2px 9px;border-radius:20px;border:1px solid rgba(0,200,150,.2)">Design Tool</span><button style="background:#7c6af6;color:#fff;border:none;padding:5px 14px;border-radius:5px;font-size:11px;font-weight:600;margin-left:8px;cursor:pointer">Login</button></div>`},
+    nav:{w:cW,h:60,x:0,y:0,label:'Navbar',html:`<div style="width:100%;height:100%;background:#1a1a2e;display:flex;align-items:center;justify-content:space-between;padding:0 36px;font-family:sans-serif"><span style="font-size:20px;font-weight:700;color:#00c896">Brand</span><nav style="display:flex;gap:22px">${['Home','About','Work','Contact'].map(l=>`<a style="color:#aaa;font-size:13px;text-decoration:none">${l}</a>`).join('')}</nav><button style="background:#7c6af6;color:#fff;border:none;padding:8px 18px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">Get Started</button></div>`},
+    hero:{w:cW,h:500,x:0,y:50,label:'Hero',html:`<div style="width:100%;height:100%;background:linear-gradient(135deg,#0f0f1e,#1a1235);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-family:sans-serif;padding:40px"><span style="background:#7c6af6;color:#fff;font-size:11px;padding:4px 14px;border-radius:20px;margin-bottom:18px;letter-spacing:1px">FREE AI TOOLS</span><h1 style="font-size:52px;font-weight:800;line-height:1.1;margin-bottom:16px;color:#fff">Build with <span style="color:#00c896">EgoTECH</span></h1><p style="font-size:15px;color:#aaaacc;max-width:480px;line-height:1.7;margin-bottom:32px">Free AI tools, source code downloads, IT jobs and software solutions — all in one platform for developers.</p><div style="display:flex;gap:12px"><button style="background:#00c896;color:#000;border:none;padding:13px 28px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">Try Free AI Tools →</button><button style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.25);padding:13px 28px;border-radius:8px;font-size:14px;cursor:pointer">Browse Projects</button></div></div>`},
+    section:{w:cW,h:300,x:0,y:550,label:'Section',html:`<div style="width:100%;height:100%;background:#f8f8fc;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-family:sans-serif;padding:40px"><h2 style="font-size:32px;font-weight:700;margin-bottom:12px;color:#1a1a2e">Section Title</h2><p style="font-size:14px;color:#666;max-width:540px;line-height:1.7">Add your content here. This section is fully customizable — change text, colors, and layout to match your design.</p></div>`},
+    footer:{w:cW,h:80,x:0,y:cH-80,label:'Footer',html:`<div style="width:100%;height:100%;background:#090910;display:flex;align-items:center;justify-content:space-between;padding:0 36px;font-family:sans-serif"><span style="color:#00c896;font-weight:700;font-size:15px">EgoTECH</span><span style="color:#555;font-size:11px">© 2025 EgoTECH Pvt Ltd. All rights reserved.</span><div style="display:flex;gap:14px">${['Privacy','Terms','Contact'].map(l=>`<a style="color:#666;font-size:11px;text-decoration:none">${l}</a>`).join('')}</div></div>`},
+    heading:{w:420,h:60,x:80,y:80,label:'Heading',html:`<h2 style="font-family:sans-serif;font-size:34px;font-weight:700;color:#111;padding:8px;line-height:1.2">Your Heading Here</h2>`},
+    text:{w:320,h:90,x:80,y:80,label:'Text',html:`<p style="font-family:sans-serif;font-size:14px;color:#444;line-height:1.75;padding:8px">Edit this paragraph text. Double-click to make it editable. Great for descriptions, bios, or any body copy in your design.</p>`},
+    image:{w:320,h:200,x:80,y:80,label:'Image',html:`<div style="width:100%;height:100%;background:linear-gradient(135deg,#e0e0f0,#c8c8e0);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#999;font-family:sans-serif;font-size:12px;gap:8px"><span style="font-size:30px">🖼</span><span>Image Placeholder</span><span style="font-size:10px;opacity:.6">320 × 200</span></div>`},
+    btn:{w:150,h:46,x:80,y:80,label:'Button',html:`<button style="width:100%;height:100%;background:#00c896;color:#000;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:sans-serif">Click Me</button>`},
+    card:{w:260,h:300,x:80,y:80,label:'Card',html:`<div style="width:100%;height:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);font-family:sans-serif"><div style="height:140px;background:linear-gradient(135deg,#7c6af6,#00c896);display:flex;align-items:center;justify-content:center;font-size:34px">✦</div><div style="padding:18px"><div style="font-weight:700;font-size:15px;margin-bottom:6px;color:#111">Card Title</div><div style="font-size:13px;color:#666;line-height:1.6">Card description text. Edit this content to suit your design.</div><button style="margin-top:14px;background:#7c6af6;color:#fff;border:none;padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer">Learn More</button></div></div>`},
+    form:{w:340,h:290,x:80,y:80,label:'Form',html:`<div style="padding:22px;font-family:sans-serif;height:100%;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.08)"><h3 style="font-size:17px;font-weight:700;margin-bottom:16px;color:#111">Get In Touch</h3><input placeholder="Your Name" style="width:100%;padding:9px 11px;border:1.5px solid #e0e0ea;border-radius:7px;font-size:13px;margin-bottom:9px;outline:none;font-family:sans-serif;display:block"><input placeholder="Email Address" style="width:100%;padding:9px 11px;border:1.5px solid #e0e0ea;border-radius:7px;font-size:13px;margin-bottom:9px;outline:none;font-family:sans-serif;display:block"><textarea placeholder="Your message..." style="width:100%;padding:9px 11px;border:1.5px solid #e0e0ea;border-radius:7px;font-size:13px;height:70px;resize:none;outline:none;font-family:sans-serif;display:block"></textarea><button style="width:100%;background:#00c896;color:#000;border:none;padding:10px;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;margin-top:9px">Send Message</button></div>`},
+    badge:{w:100,h:30,x:80,y:80,label:'Badge',html:`<div style="width:100%;height:100%;background:#00c896;color:#000;display:flex;align-items:center;justify-content:center;border-radius:20px;font-size:11px;font-weight:700;font-family:sans-serif;letter-spacing:.5px">NEW</div>`},
+    divider:{w:600,h:24,x:80,y:200,label:'Divider',html:`<div style="width:100%;display:flex;align-items:center;height:100%;gap:12px"><div style="flex:1;height:1px;background:#e0e0ea"></div><span style="font-size:11px;color:#aaa">✦</span><div style="flex:1;height:1px;background:#e0e0ea"></div></div>`},
+    testimonial:{w:340,h:200,x:80,y:80,label:'Testimonial',html:`<div style="padding:22px;font-family:sans-serif;height:100%;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.08)"><div style="color:#f7b731;font-size:17px;margin-bottom:9px">★★★★★</div><p style="font-size:13px;color:#444;line-height:1.7;margin-bottom:16px;font-style:italic">"EgoTECH's free tools completely changed how I approach my job search. Highly recommended!"</p><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#7c6af6,#00c896);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px">A</div><div><div style="font-weight:600;font-size:12px;color:#111">Alex Johnson</div><div style="font-size:11px;color:#999">Software Developer</div></div></div></div>`},
+    pricing:{w:260,h:360,x:80,y:80,label:'Pricing',html:`<div style="padding:26px;font-family:sans-serif;height:100%;background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);display:flex;flex-direction:column"><div style="font-size:11px;font-weight:700;letter-spacing:1px;color:#7c6af6;margin-bottom:8px">PRO PLAN</div><div style="font-size:40px;font-weight:800;color:#111;line-height:1">$49<span style="font-size:15px;font-weight:400;color:#999">/mo</span></div><div style="color:#888;font-size:12px;margin:8px 0 18px">Everything in Starter, plus:</div><ul style="list-style:none;display:flex;flex-direction:column;gap:7px;flex:1">${['Unlimited projects','Priority support','Advanced analytics','Custom domain','Team collaboration'].map(f=>`<li style="display:flex;align-items:center;gap:7px;font-size:12px;color:#333"><span style="color:#00c896;font-weight:700">✓</span>${f}</li>`).join('')}</ul><button style="width:100%;background:#00c896;color:#000;border:none;padding:11px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:14px">Get Started</button></div>`},
+    features:{w:cW,h:280,x:0,y:300,label:'Features',html:`<div style="padding:40px;font-family:sans-serif;height:100%;background:#f8f8fc"><h2 style="text-align:center;font-size:28px;font-weight:700;margin-bottom:8px;color:#1a1a2e">Platform Features</h2><p style="text-align:center;color:#888;font-size:13px;margin-bottom:30px">Built by Sri Lankan developers, used worldwide</p><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px">${[['🤖','AI-Powered Tools','Resume builder, code assistant and career tools powered by Google Gemini API'],['💾','Free Source Code','Download complete Django, Laravel, React & Java projects at zero cost'],['💼','IT Job Board','Find local and remote developer jobs. Post your resume to global recruiters']].map(([i,t,d])=>`<div style="text-align:center"><div style="font-size:26px;margin-bottom:9px">${i}</div><div style="font-weight:700;font-size:13px;margin-bottom:5px;color:#1a1a2e">${t}</div><div style="font-size:12px;color:#888;line-height:1.6">${d}</div></div>`).join('')}</div></div>`},
+    stats:{w:cW,h:130,x:0,y:200,label:'Stats',html:`<div style="display:grid;grid-template-columns:repeat(4,1fr);height:100%;font-family:sans-serif;background:#090910">${[['10K+','Happy Users'],['99.9%','Uptime SLA'],['500+','Free Projects'],['24/7','Support']].map(([n,l])=>`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid rgba(255,255,255,.06)"><div style="font-size:28px;font-weight:800;color:#00c896">${n}</div><div style="font-size:11px;color:#555;margin-top:4px">${l}</div></div>`).join('')}</div>`},
+    note:{w:220,h:180,x:100,y:100,label:'Sticky Note',html:`<div style="width:100%;height:100%;background:#fef08a;padding:14px 16px;font-family:sans-serif;box-shadow:3px 3px 0 rgba(0,0,0,.12);border-radius:2px"><div style="font-size:10px;font-weight:700;color:#78716c;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">📌 NOTE</div><div style="font-size:13px;color:#292524;line-height:1.75">Double-click to edit this note. Use sticky notes to annotate your design.</div></div>`},
+    youtube:{w:480,h:270,x:100,y:100,label:'YouTube',html:`<div style="width:100%;height:100%;background:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font-family:sans-serif;border-radius:4px"><div style="width:60px;height:60px;background:#ff0000;border-radius:12px;display:flex;align-items:center;justify-content:center"><span style="color:#fff;font-size:26px;margin-left:4px">▶</span></div><div style="color:#fff;font-size:13px;font-weight:600">YouTube Video</div><div style="color:#888;font-size:11px">Drop to configure</div></div>`},
+    code:{w:480,h:220,x:80,y:80,label:'Code Block',html:`<div style="width:100%;height:100%;background:#1e1e2e;border-radius:10px;overflow:hidden;font-family:monospace"><div style="background:#2a2a3e;padding:7px 12px;display:flex;align-items:center;gap:7px"><span style="width:9px;height:9px;border-radius:50%;background:#ff5f5f;display:inline-block"></span><span style="width:9px;height:9px;border-radius:50%;background:#f7b731;display:inline-block"></span><span style="width:9px;height:9px;border-radius:50%;background:#00c896;display:inline-block"></span><span style="color:#666;font-size:10px;margin-left:8px">Python</span></div><pre style="padding:14px;color:#cdd6f4;font-size:12px;line-height:1.7;margin:0;overflow:auto;height:calc(100% - 34px)"><span style="color:#cba6f7">def</span> <span style="color:#89b4fa">greet</span>(name):\n    <span style="color:#89dceb">print</span>(<span style="color:#a6e3a1">f"Hello, {name}!"</span>)\n\n<span style="color:#89b4fa">greet</span>(<span style="color:#a6e3a1">"EgoTECH"</span>)</pre></div>`},
+    codeexp:{w:680,h:260,x:40,y:80,label:'Code + Explain',html:`<div style="width:100%;height:100%;display:grid;grid-template-columns:1fr 1fr;border-radius:10px;overflow:hidden;font-family:sans-serif"><div style="background:#1e1e2e"><div style="background:#2a2a3e;padding:7px 12px;display:flex;align-items:center;gap:7px"><span style="width:9px;height:9px;border-radius:50%;background:#ff5f5f;display:inline-block"></span><span style="width:9px;height:9px;border-radius:50%;background:#f7b731;display:inline-block"></span><span style="width:9px;height:9px;border-radius:50%;background:#00c896;display:inline-block"></span><span style="color:#666;font-size:10px;margin-left:8px">JavaScript</span></div><pre style="padding:12px;color:#cdd6f4;font-size:11px;line-height:1.65;margin:0">const data = fetch('/api/users')\n  .then(r =&gt; r.json())\n  .then(users =&gt; {\n    console.log(users);\n  });</pre></div><div style="background:#f8f8fc;padding:16px;border-left:3px solid #00c896"><div style="font-size:10px;font-weight:700;color:#00c896;letter-spacing:.5px;margin-bottom:9px;text-transform:uppercase">💡 Explanation</div><p style="font-size:12px;color:#333;line-height:1.75">This code fetches user data from an API. The fetch() function sends a GET request, then .then() chains convert the response to JSON and log it.</p><div style="margin-top:10px;padding:7px 10px;background:#e8f8f3;border-radius:5px;font-size:11px;color:#086"><strong>Key concept:</strong> Promise chaining with .then()</div></div></div>`}
+  };
+  return T[type]||T.text;
+}
+
+// ── ADD ──
+function addEl(type,x,y){
+  const t=getTpl(type);
+  const el={id:'el_'+(idC++),type,label:t.label,x:x!==undefined?x:t.x,y:y!==undefined?y:t.y,w:t.w,h:t.h,html:t.html,opacity:1,visible:true,zIndex:els.length+1};
+  els.push(el);renderEl(el);selEl(el.id);updateLayers();saveHist();return el;
+}
+
+function renderEl(el){
+  let d=document.getElementById(el.id);const isNew=!d;
+  if(isNew){d=document.createElement('div');d.id=el.id;d.className='cel';canvas.appendChild(d);}
+  d.style.cssText=`left:${el.x}px;top:${el.y}px;width:${el.w}px;height:${el.h}px;z-index:${el.zIndex};opacity:${el.opacity};display:${el.visible?'block':'none'};`;
+  d.innerHTML=el.html;
+  if(isNew){d.addEventListener('mousedown',onElDown);d.addEventListener('contextmenu',onCtx);d.addEventListener('dblclick',onDbl);}
+}
+
+// ── DRAG FROM SIDEBAR ──
+document.querySelectorAll('.ccard').forEach(c=>{
+  c.addEventListener('dragstart',e=>{draggingType=c.dataset.type;e.dataTransfer.effectAllowed='copy';});
+});
+canvas.addEventListener('dragover',e=>{e.preventDefault();canvas.classList.add('dov');});
+canvas.addEventListener('dragleave',()=>canvas.classList.remove('dov'));
+canvas.addEventListener('drop',e=>{
+  e.preventDefault();canvas.classList.remove('dov');if(!draggingType)return;
+  const r=canvas.getBoundingClientRect();
+  const x=Math.round((e.clientX-r.left)/zoom),y=Math.round((e.clientY-r.top)/zoom);
+  handleDrop(draggingType,x,y);draggingType=null;
+});
+
+function handleDrop(type,x,y){
+  pendingX=x;pendingY=y;pendingType=type;
+  if(type==='youtube'){openModal('yt-modal');return;}
+  if(type==='note'){openModal('note-modal');return;}
+  if(type==='code'||type==='codeexp'){document.getElementById('code-type').value=type;openModal('code-modal');return;}
+  addEl(type,x,y);
+}
+
+// ── MODALS ──
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+function confirmYT(){
+  let url=document.getElementById('yt-url').value.trim();
+  const title=document.getElementById('yt-title').value.trim()||'Tutorial Video';
+  if(!url){showToast('Please enter a YouTube URL');return;}
+  const m=url.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  const vid=m?m[1]:url.trim();
+  const html=`<div style="width:100%;height:100%;background:#000;border-radius:4px;overflow:hidden;display:flex;flex-direction:column"><div style="background:#1a1a1a;padding:7px 12px;font-family:sans-serif;font-size:11px;color:#aaa;display:flex;align-items:center;gap:7px;flex-shrink:0"><span style="color:#ff0000;font-size:14px">▶</span>${escHtml(title)}</div><iframe width="100%" height="calc(100% - 32px)" src="https://www.youtube.com/embed/${vid}?rel=0" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen style="display:block"></iframe></div>`;
+  const el=addEl('youtube',pendingX,pendingY);el.html=html;el.w=480;el.h=290;el.label='▶ '+title;
+  renderEl(el);updateLayers();closeModal('yt-modal');
+  document.getElementById('yt-url').value='';document.getElementById('yt-title').value='';
+  showToast('YouTube video embedded!');
+}
+
+function confirmNote(){
+  const txt=document.getElementById('note-text').value.trim()||'Your note here...';
+  const [bg,fg]=document.getElementById('note-color').value.split(',');
+  const html=`<div style="width:100%;height:100%;background:${bg};padding:14px 16px;font-family:sans-serif;box-shadow:3px 3px 0 rgba(0,0,0,.12);border-radius:2px"><div style="font-size:10px;font-weight:700;color:${fg};opacity:.6;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">📌 NOTE</div><div style="font-size:13px;color:${fg};line-height:1.75;white-space:pre-wrap">${escHtml(txt)}</div></div>`;
+  const el=addEl('note',pendingX,pendingY);el.html=html;el.label='📌 Note';
+  renderEl(el);updateLayers();closeModal('note-modal');
+  document.getElementById('note-text').value='';showToast('Note added!');
+}
+
+function confirmCode(){
+  const lang=document.getElementById('code-lang').value;
+  const src=document.getElementById('code-src').value||'// Your code here';
+  const exp=document.getElementById('code-explain').value;
+  const ctype=document.getElementById('code-type').value;
+  const escaped=escHtml(src);
+  let html;
+  if(ctype==='codeexp'&&exp){
+    html=`<div style="width:100%;height:100%;display:grid;grid-template-columns:1fr 1fr;border-radius:10px;overflow:hidden;font-family:sans-serif"><div style="background:#1e1e2e;overflow:hidden"><div style="background:#2a2a3e;padding:7px 12px;display:flex;align-items:center;gap:7px"><span style="width:9px;height:9px;border-radius:50%;background:#ff5f5f;display:inline-block"></span><span style="width:9px;height:9px;border-radius:50%;background:#f7b731;display:inline-block"></span><span style="width:9px;height:9px;border-radius:50%;background:#00c896;display:inline-block"></span><span style="color:#666;font-size:10px;margin-left:8px">${escHtml(lang)}</span></div><pre style="padding:12px;color:#cdd6f4;font-size:11px;line-height:1.65;margin:0;overflow:auto;height:calc(100% - 34px)">${escaped}</pre></div><div style="background:#f8f8fc;padding:16px;border-left:3px solid #00c896;overflow:auto"><div style="font-size:10px;font-weight:700;color:#00c896;letter-spacing:.5px;margin-bottom:9px;text-transform:uppercase">💡 Explanation</div><p style="font-size:12px;color:#333;line-height:1.75">${escHtml(exp)}</p></div></div>`;
+  } else {
+    html=`<div style="width:100%;height:100%;background:#1e1e2e;border-radius:10px;overflow:hidden;font-family:monospace"><div style="background:#2a2a3e;padding:7px 12px;display:flex;align-items:center;gap:7px"><span style="width:9px;height:9px;border-radius:50%;background:#ff5f5f;display:inline-block"></span><span style="width:9px;height:9px;border-radius:50%;background:#f7b731;display:inline-block"></span><span style="width:9px;height:9px;border-radius:50%;background:#00c896;display:inline-block"></span><span style="color:#666;font-size:10px;margin-left:8px">${escHtml(lang)}</span></div><pre style="padding:14px;color:#cdd6f4;font-size:12px;line-height:1.7;margin:0;overflow:auto;height:calc(100% - 34px)">${escaped}</pre></div>`;
+  }
+  const el=addEl(ctype,pendingX,pendingY);el.html=html;el.w=ctype==='codeexp'?680:480;el.h=240;el.label=lang+' Code';
+  renderEl(el);updateLayers();closeModal('code-modal');
+  document.getElementById('code-src').value='';document.getElementById('code-explain').value='';
+  showToast('Code block added!');
+}
+
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── MOVE ──
+function onElDown(e){
+  if(e.button!==0||e.target.classList.contains('rh'))return;
+  e.stopPropagation();
+  const el=getEl(e.currentTarget.id);if(!el)return;
+  selEl(el.id);
+  const r=canvas.getBoundingClientRect();
+  dragOX=(e.clientX-r.left)/zoom-el.x;dragOY=(e.clientY-r.top)/zoom-el.y;isDrag=true;
+  const mv=me=>{if(!isDrag)return;const rc=canvas.getBoundingClientRect();el.x=Math.round(Math.max(0,Math.min(cW-el.w,(me.clientX-rc.left)/zoom-dragOX)));el.y=Math.round(Math.max(0,Math.min(cH-el.h,(me.clientY-rc.top)/zoom-dragOY)));const d=document.getElementById(el.id);d.style.left=el.x+'px';d.style.top=el.y+'px';updPI(el);};
+  const up=()=>{isDrag=false;document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);saveHist();};
+  document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
+}
+
+// ── RESIZE ──
+function addH(id){const d=document.getElementById(id);if(!d)return;d.querySelectorAll('.rh').forEach(h=>h.remove());['tl','tr','bl','br','tm','bm','ml','mr'].forEach(p=>{const h=document.createElement('div');h.className='rh '+p;h.addEventListener('mousedown',e=>startR(e,id,p));d.appendChild(h);});}
+function remH(id){const d=document.getElementById(id);if(d)d.querySelectorAll('.rh').forEach(h=>h.remove());}
+
+function startR(e,id,pos){
+  e.preventDefault();e.stopPropagation();
+  const el=getEl(id);if(!el)return;
+  resizing={el,pos};rsX=e.clientX;rsY=e.clientY;rsW=el.w;rsH=el.h;rsL=el.x;rsT=el.y;
+  const mv=me=>{const dx=(me.clientX-rsX)/zoom,dy=(me.clientY-rsY)/zoom,{el,pos}=resizing;
+    if(pos.includes('r'))el.w=Math.max(40,rsW+dx);
+    if(pos.includes('l')){el.w=Math.max(40,rsW-dx);el.x=rsL+(rsW-el.w);}
+    if(pos.includes('b'))el.h=Math.max(20,rsH+dy);
+    if(pos.includes('t')){el.h=Math.max(20,rsH-dy);el.y=rsT+(rsH-el.h);}
+    if(pos==='tm'||pos==='bm')el.w=rsW;if(pos==='ml'||pos==='mr')el.h=rsH;
+    el.w=Math.round(el.w);el.h=Math.round(el.h);el.x=Math.round(el.x);el.y=Math.round(el.y);
+    const d=document.getElementById(el.id);d.style.left=el.x+'px';d.style.top=el.y+'px';d.style.width=el.w+'px';d.style.height=el.h+'px';updPI(el);};
+  const up=()=>{resizing=null;saveHist();document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);};
+  document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
+}
+
+// ── SELECT ──
+function selEl(id){
+  if(selId&&selId!==id){const p=document.getElementById(selId);if(p){p.classList.remove('sel');remH(selId);}}
+  selId=id;if(id){const d=document.getElementById(id);if(d){d.classList.add('sel');addH(id);}showProps(getEl(id));updateLayers();}
+}
+function desel(){
+  if(selId){const d=document.getElementById(selId);if(d){d.classList.remove('sel');remH(selId);}}
+  selId=null;
+  pcontent.innerHTML=`<div class="no-sel"><div class="big">✦</div><div>Select an element to edit its properties</div></div>`;
+  updateLayers();
+}
+canvas.addEventListener('click',e=>{if(e.target===canvas)desel();});
+
+// ── DBLCLICK ──
+function onDbl(e){
+  const el=getEl(e.currentTarget.id);if(!el)return;
+  const d=document.getElementById(el.id);
+  const t=d.querySelector('h1,h2,h3,p,button,a,span:not(.rh),div[style*="font-size"]');
+  if(t){t.contentEditable='true';t.focus();t.addEventListener('blur',()=>{t.contentEditable='false';el.html=d.innerHTML.replace(/<div class="rh[^"]*"[^>]*><\/div>/g,'');saveHist();},{once:true});}
+}
+
+// ── CONTEXT ──
+const ctx=document.getElementById('ctx');
+function onCtx(e){e.preventDefault();selEl(e.currentTarget.id);ctx.style.display='block';ctx.style.left=e.clientX+'px';ctx.style.top=e.clientY+'px';}
+document.addEventListener('click',()=>ctx.style.display='none');
+function ctxDup(){if(selId)dupEl(selId);}
+function ctxDel(){if(selId)delEl(selId);}
+function ctxFront(){if(selId){const el=getEl(selId);if(el){el.zIndex=Math.max(...els.map(e=>e.zIndex))+1;document.getElementById(selId).style.zIndex=el.zIndex;}}}
+function ctxBack(){if(selId){const el=getEl(selId);if(el){el.zIndex=Math.max(1,Math.min(...els.map(e=>e.zIndex))-1);document.getElementById(selId).style.zIndex=el.zIndex;}}}
+
+// ── PROPS ──
+function showProps(el){
+  if(!el)return;
+  pcontent.innerHTML=`
+    <div class="pg"><div class="pgt">Position & Size</div>
+      <div class="pr"><span class="pl">X</span><input class="pi" id="px" type="number" value="${Math.round(el.x)}" oninput="updP('x',+this.value)"></div>
+      <div class="pr"><span class="pl">Y</span><input class="pi" id="py" type="number" value="${Math.round(el.y)}" oninput="updP('y',+this.value)"></div>
+      <div class="pr"><span class="pl">Width</span><input class="pi" id="pw" type="number" value="${Math.round(el.w)}" oninput="updP('w',+this.value)"></div>
+      <div class="pr"><span class="pl">Height</span><input class="pi" id="ph" type="number" value="${Math.round(el.h)}" oninput="updP('h',+this.value)"></div>
+    </div>
+    <div class="pg"><div class="pgt">Appearance</div>
+      <div class="pr"><span class="pl">Opacity</span><input type="range" min="0" max="1" step="0.01" value="${el.opacity}" style="flex:1;accent-color:var(--accent2)" oninput="updP('opacity',+this.value)"><span style="font-size:10px;color:var(--text2);width:28px;text-align:right">${Math.round(el.opacity*100)}%</span></div>
+    </div>
+    <div class="pg"><div class="pgt">Actions</div>
+      <div class="pr"><button class="pbtn" onclick="dupEl('${el.id}')">⧉ Duplicate</button><button class="pbtn" onclick="delEl('${el.id}')" style="margin-left:auto;color:var(--red);border-color:var(--red)">✕ Delete</button></div>
+      <div class="pr"><button class="pbtn" onclick="ctxFront()">↑ Front</button><button class="pbtn" onclick="ctxBack()">↓ Back</button></div>
+    </div>`;
+}
+function updPI(el){if(!el)return;['x','y','w','h'].forEach(k=>{const i=document.getElementById('p'+k);if(i)i.value=Math.round(el[k]);});}
+function updP(prop,val){const el=getEl(selId);if(!el)return;el[prop]=val;const d=document.getElementById(el.id);if(prop==='x')d.style.left=val+'px';else if(prop==='y')d.style.top=val+'px';else if(prop==='w')d.style.width=val+'px';else if(prop==='h')d.style.height=val+'px';else if(prop==='opacity')d.style.opacity=val;}
+
+// ── LAYERS ──
+function updateLayers(){
+  const list=document.getElementById('layer-list');list.innerHTML='';
+  [...els].reverse().forEach(el=>{
+    const item=document.createElement('div');item.className='layer-item'+(el.id===selId?' on':'');
+    item.innerHTML=`<span class="layer-icon">${tIcon(el.type)}</span><span class="layer-name">${el.label}</span><span class="layer-eye" onclick="togV(event,'${el.id}')">${el.visible?'👁':'🚫'}</span>`;
+    item.addEventListener('click',()=>selEl(el.id));list.appendChild(item);
+  });
+}
+function tIcon(t){const m={egonav:'🌐',nav:'🔗',hero:'🌟',section:'📄',footer:'🏠',text:'🆃',heading:'📰',image:'🖼',btn:'🔲',card:'🃏',form:'📝',badge:'🏷',divider:'➖',testimonial:'💬',pricing:'💲',features:'⚡',stats:'📊',note:'📌',youtube:'▶️',code:'💻',codeexp:'🧠'};return m[t]||'◻';}
+function togV(e,id){e.stopPropagation();const el=getEl(id);if(el){el.visible=!el.visible;document.getElementById(id).style.display=el.visible?'block':'none';updateLayers();}}
+
+// ── OPS ──
+function delEl(id){const d=document.getElementById(id);if(d)d.remove();els=els.filter(e=>e.id!==id);if(selId===id)desel();updateLayers();saveHist();}
+function dupEl(id){const el=getEl(id);if(!el)return;const c=JSON.parse(JSON.stringify(el));c.id='el_'+(idC++);c.x+=18;c.y+=18;c.zIndex=els.length+1;els.push(c);renderEl(c);selEl(c.id);updateLayers();saveHist();showToast('Duplicated!');}
+function clearAll(){if(!confirm('Clear all elements?'))return;els.forEach(e=>{const d=document.getElementById(e.id);if(d)d.remove();});els=[];desel();updateLayers();saveHist();}
+
+// ── HISTORY ──
+function saveHist(){const s=JSON.stringify(els.map(e=>({...e})));if(histIdx<hist.length-1)hist=hist.slice(0,histIdx+1);hist.push(s);if(hist.length>50)hist.shift();histIdx=hist.length-1;}
+function undo(){if(histIdx<=0)return;histIdx--;restore(JSON.parse(hist[histIdx]));}
+function redo(){if(histIdx>=hist.length-1)return;histIdx++;restore(JSON.parse(hist[histIdx]));}
+function restore(state){canvas.querySelectorAll('.cel').forEach(e=>e.remove());els=state;idC=Math.max(idC,...els.map(e=>parseInt(e.id.split('_')[1])+1),1);els.forEach(e=>renderEl(e));desel();updateLayers();}
+
+// ── EXPORT ──
+function exportHTML(){
+  const body=els.filter(e=>e.visible).map(el=>`<div style="position:absolute;left:${el.x}px;top:${el.y}px;width:${el.w}px;height:${el.h}px;z-index:${el.zIndex};opacity:${el.opacity}">${el.html}</div>`).join('\n');
+  const html=`<!DOCTYPE html>\n<html lang="en">\n<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EgoTECH Design Export</title>\n<style>*{box-sizing:border-box;margin:0;padding:0}body{width:${cW}px;height:${cH}px;position:relative;overflow:hidden;font-family:sans-serif}</style></head>\n<body>\n${body}\n</body></html>`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));a.download='egotech-design.html';a.click();showToast('Exported!');
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.contentEditable==='true')return;
+  if(e.key==='Delete'||e.key==='Backspace'){if(selId)delEl(selId);}
+  if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key==='z'){e.preventDefault();undo();}
+  if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.shiftKey&&e.key==='z'))){e.preventDefault();redo();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='d'){e.preventDefault();if(selId)dupEl(selId);}
+  if((e.ctrlKey||e.metaKey)&&e.key==='e'){e.preventDefault();exportHTML();}
+  if(selId){const el=getEl(selId);if(!el)return;const s=e.shiftKey?10:1;const d=document.getElementById(el.id);
+    if(e.key==='ArrowLeft'){e.preventDefault();el.x-=s;d.style.left=el.x+'px';updPI(el);}
+    if(e.key==='ArrowRight'){e.preventDefault();el.x+=s;d.style.left=el.x+'px';updPI(el);}
+    if(e.key==='ArrowUp'){e.preventDefault();el.y-=s;d.style.top=el.y+'px';updPI(el);}
+    if(e.key==='ArrowDown'){e.preventDefault();el.y+=s;d.style.top=el.y+'px';updPI(el);}
+  }
+});
+
+// ── HOW TO USE ──
+function openHowTo(){document.getElementById('howto').classList.add('open');}
+function closeHowTo(){document.getElementById('howto').classList.remove('open');}
+
+// ── TABS ──
+function switchTab(name,el){
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.spanel').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');document.getElementById('tab-'+name).classList.add('on');
+}
+
+// ── TOAST ──
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+// ── HELPERS ──
+function getEl(id){return els.find(e=>e.id===id);}
+
+// ── INIT ──
+canvas.style.width=cW+'px';canvas.style.height=cH+'px';
+saveHist();
+window.addEventListener('load',()=>{setTimeout(autoZoom,100);setTimeout(openHowTo,700);});
+window.addEventListener('resize',autoZoom);
+</script>
+</body>
+</html>
